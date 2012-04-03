@@ -1,0 +1,70 @@
+vgui : registered 'qt' 'glut' 
+vgui : initialize 'qt'
+existing scene initialized
+Scene Initialized... 
+---OCL_SCENE--------------------------------
+path: /Users/isa/Experiments/tests/bit_scene
+blocks:  [block_nums 16,16,16] [blk_dim 0.00625,0.00625,0.00625]
+blk levels: [init level 1] [max level 4]
+tree_buffers: [num 11 by 410]
+data_buffers: [num 11 by 65536]
+total cells: 4510(tree) and 720896(data)
+size (on disk)      : 44.0844 MB
+size (on gpu update): 24.8344 MB
+size (on gpu render): 8.33444 MB
+free space:
+     buff[0]=6731 free cells, ptrs @ (0, 58805)  blks in buff: 372
+     buff[1]=6954 free cells, ptrs @ (0, 58582)  blks in buff: 373
+     buff[2]=7170 free cells, ptrs @ (0, 58366)  blks in buff: 373
+     buff[3]=7057 free cells, ptrs @ (0, 58479)  blks in buff: 374
+     buff[4]=6857 free cells, ptrs @ (0, 58679)  blks in buff: 374
+     buff[5]=6659 free cells, ptrs @ (0, 58877)  blks in buff: 372
+     buff[6]=7236 free cells, ptrs @ (0, 58300)  blks in buff: 371
+     buff[7]=7003 free cells, ptrs @ (0, 58533)  blks in buff: 372
+     buff[8]=7034 free cells, ptrs @ (0, 58502)  blks in buff: 373
+     buff[9]=6948 free cells, ptrs @ (0, 58588)  blks in buff: 371
+     buff[10]=6876 free cells, ptrs @ (0, 58660)  blks in buff: 371
+total free cells: 76525
+--------------------------------------------
+
+Found 1 GPUs
+Context Description
+Platform Name: Apple
+Device vendor: NVIDIA
+ Number of devices: 1
+ Number of compute units: 4
+ Maximum clock frequency: 1.4 GHz
+ Total global memory: 0.5 GBytes
+ Total local memory: 16 KBytes
+ Maximum work group size: 64
+ Maximum work item sizes: (64,64,8)
+ Preferred short vector length: 1
+ Preferred float vector length: 1
+ image support 1
+ Max 2D image width  8192
+ Max 2D image height  8192
+ Device id [0]: 0x1022600
+Using functor step_cell_render_opt
+clCreateProgramWithSource failed.
+Block size 0.0625MB
+Optimized sizes:
+    cells: 0.0688171 MB
+    data:  8.25 MB
+create: scene_dims_buf
+clCreateBuffer (scene_dims_) failed.
+create: kernel0
+CL_INVALID_PROGRAM
+create: command_queue
+Failed in command queue creationCL_INVALID_CONTEXT
+clEnqueueAcquireGLObjects failed. (gl_image)CL_INVALID_COMMAND_QUEUE
+clEnqueueAcquireGLObjects failed. (gl_image)CL_INVALID_COMMAND_QUEUE
+clEnqueueAcquireGLObjects failed. (gl_image)CL_INVALID_COMMAND_QUEUE
+clEnqueueAcquireGLObjects failed. (gl_image)CL_INVALID_COMMAND_QUEUE
+Between /Projects/vxl/src/core/vgui/vgui_adaptor.cxx:198
+    and /Projects/vxl/src/core/vgui/vgui_adaptor.cxx:210 : "invalid operation"
+Between /Projects/vxl/src/core/vgui/vgui_adaptor.cxx:198
+    and /Projects/vxl/src/core/vgui/vgui_adaptor.cxx:210 : "invalid operation"
+Between /Projects/vxl/src/core/vgui/vgui_adaptor.cxx:198
+    and /Projects/vxl/src/core/vgui/vgui_adaptor.cxx:210 : "invalid operation"
+Between /Projects/vxl/src/core/vgui/vgui_adaptor.cxx:198
+    and /Projects/vxl/src/core/vgui/vgui_adaptor.cxx:210 : "invalid operation"
