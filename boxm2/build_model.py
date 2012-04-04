@@ -123,7 +123,7 @@ for idx, i in enumerate(frames):
         print "Refined Failed, clearing cache and exiting:"
         scene.clear_cache();
         boxm2_batch.clear(); 
-        sys.exit(-1)
+        sys.exit(-10)
 
     #update scene
     status = scene.update(pcam, img, True, None, "",  options.var); 
@@ -131,7 +131,7 @@ for idx, i in enumerate(frames):
        print "Update Failed, clearing cache and exiting:"
        scene.clear_cache();
        boxm2_batch.clear();
-       sys.exit(-1);
+       sys.exit(-15);
 
 
     #clean up

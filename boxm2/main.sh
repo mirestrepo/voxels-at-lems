@@ -20,27 +20,25 @@ export PYTHONPATH=/Projects/vxl/bin/$CONFIGURATION/lib:/Projects/vxl/src/contrib
 # DEFINE STEPS TO BE RUN
 #*******************************************************************************************************
 
+crop_scene=false;
 convert_to_grey=false;
 create_scene_from_bundler=false;
 create_scene_from_xml=false;
 build_model=false;
+crop_scene=false;
+render_circle=false;
 render=false;
 render_cropped=false;
-render_circle=false;
 render_interactive=false;
 render_trajectory=false;
-crop_scene=false;
 
 
-#convert_to_grey=true;
-#create_scene_from_bundler=true;
-#create_scene_from_xml=true;
+create_scene_from_xml=true;
 #build_model=true;
-#render=true;
 #crop_scene=true;
+#render=true;
 #render_cropped=true;
-#render_circle=true;
-render_interactive=true;
+#render_interactive=true;
 #render_trajectory=true;
 
 
@@ -49,7 +47,7 @@ render_interactive=true;
 #*******************************************************************************************************
 #Top directory containing frams_original
 #root_dir="/volumes/vision/video/helicopter_providence/3d_models_3_12/site_1";
-root_dir="/data/helicopter_providence_3_12/site_6";
+root_dir="/data/helicopter_providence_3_12/site_7";
 
 # directory where boxm2 scene is stored
 model_dirname=model;
