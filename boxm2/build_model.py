@@ -36,7 +36,7 @@ scene_root = options.sceneroot;
 # Set some update parameters
 SCENE_NAME = options.xml
 GPU = options.gpu
-REFINE_INTERVAL=20
+REFINE_INTERVAL=10
 REFINE_ON = not options.norefine
 SKIP_FRAME = options.skip;
 INIT_FRAME = options.initFrame;
@@ -123,7 +123,7 @@ for idx, i in enumerate(frames):
         print "Refined Failed, clearing cache and exiting:"
         scene.clear_cache();
         boxm2_batch.clear(); 
-        sys.exit(-10)
+        sys.exit(1)
 
     #update scene
     status = scene.update(pcam, img, True, None, "",  options.var); 
@@ -131,7 +131,7 @@ for idx, i in enumerate(frames):
        print "Update Failed, clearing cache and exiting:"
        scene.clear_cache();
        boxm2_batch.clear();
-       sys.exit(-15);
+       sys.exit(2);
 
 
     #clean up
