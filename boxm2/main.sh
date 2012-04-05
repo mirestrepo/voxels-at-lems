@@ -1,4 +1,4 @@
-#!/bin/bash
+ #!/bin/bash
 """
 Created on Mon April 23, 2011
 
@@ -36,7 +36,7 @@ render_trajectory=false;
 create_scene_from_xml=true;
 #build_model=true;
 #crop_scene=true;
-#render=true;
+#render=true; 
 #render_cropped=true;
 #render_interactive=true;
 #render_trajectory=true;
@@ -47,7 +47,7 @@ create_scene_from_xml=true;
 #*******************************************************************************************************
 #Top directory containing frams_original
 #root_dir="/volumes/vision/video/helicopter_providence/3d_models_3_12/site_1";
-root_dir="/data/helicopter_providence_3_12/site_7";
+#root_dir="/data/helicopter_providence_3_12/site_12";
 
 # directory where boxm2 scene is stored
 model_dirname=model;
@@ -101,45 +101,74 @@ if $build_model; then
     
     #To build the model we brake the image set in chucks because leaks on the GPU cache can corrupt the scene
     #We are specially conservative while we refine
-    
+
     scene_file="scene.xml"
     imtype="jpg"
     device_name="gpu1";
     #device_name="cpp";
-    
+
     #Train and refine
-    CHUNKS=12
+    CHUNKS=12;
+
+
     failed=0;
-    for((i=0; i < 1; i++))
+    failed_r=0;
+    failed_u=0;
+    for((i=0; i < 3; i++))
     do
         echo "Iteration = $i --Refine ON"
-        for((chunk=0; chunk < 1; chunk++))
+        for((chunk=0; chunk < CHUNKS; chunk++))
         do
            python build_model.py -s $root_dir -x "$model_dirname/$scene_file" --imtype "$imtype" -g $device_name -v .06 --initFrame $chunk --skipFrame $CHUNKS --clearApp 1
-        if [ ${?} -ne 0 ]; then 
-            failed=$(($failed+1))
-            echo "[Error] Something Failed. Iteration $i, Chunck $chunk. Num errors $failed"
-            #exit -1
-        fi
+           
+           status=${?}
+           if [ $status -eq 1 ]; then 
+                echo "status: $status"
+                failed=$(($failed+1))
+                failed_r=$(($failed_r+1))
+                echo "[Error] Something Failed. Refine ON. Iteration $i, Chunck $chunk. Num errors $failed"
+                #exit -1
+           fi
+           if [ $status -eq 2 ]; then 
+                failed=$(($failed+1))
+                failed_u=$(($failed_u+1))
+                echo "[Error] Something Failed. Refine ON. Iteration $i, Chunck $chunk. Num errors $failed"
+                #exit -1
+           fi
+        done
+    done
+
+    #Train without refining
+    CHUNKS=3
+    failed2=0;
+    failed_r2=0;
+    failed_u2=0;
+    for((i=0; i < 1; i++))
+    do
+        echo "Iteration = $i --Refine OFF"
+        for((chunk=0; chunk < CHUNKS; chunk++))
+        do
+            python build_model.py -s $root_dir -x "$model_dirname/$scene_file" --imtype "$imtype" -g $device_name -v .06 --refineoff 1 --initFrame $chunk --skipFrame $CHUNKS
+            
+            status=${?}
+            echo "status: $status"
+            if [ $status -eq 1 ]; then 
+                failed2=$(($failed2+1))
+                failed_r2=$(($failed_r2+1))
+                echo "[Error] Something Failed. Refine OFF. Iteration $i, Chunck $chunk. Num errors $failed2"
+                #exit -1
+            fi
+            if [ $status -eq 2 ]; then 
+                failed2=$(($failed2+1))
+                failed_u2=$(($failed_u2+1))
+                echo "[Error] Something Failed. Refine OFF. Iteration $i, Chunck $chunk. Num errors $failed2"
+                #exit -1
+            fi
         done
      done
-    
-    #Train without refining
-#    CHUNKS=2
-#    failed2=0;
-#    for((i=0; i <= 1; i++))
-#    do
-#        echo "Iteration = $i --Refine OFF"
-#        for((chunk=0; chunk < CHUNKS; chunk++))
-#        do
-#            python build_model.py -s $root_dir -x "$model_dirname/$scene_file" --imtype "$imtype" -g $device_name -v .06 --refineoff 1 --initFrame $chunk --skipFrame $CHUNKS
-#            if [ ${?} -ne 0 ]; then 
-#                failed2=$(($failed2+1))
-#                echo "[Error] Something Failed --Refine OFF. Iteration $i, Chunck $chunk. Num errors $failed2"
-#                #exit -1
-#            fi
-#        done
-#     done
+
+    status_file=$root_dir/"train_status.txt";
+    echo -e "Refine ON errors: u-$failed_u, r-$failed_r, t-$failed \nRefine OFF errors: u-$failed_u2, r-$failed_r2, t-$failed2" > $status_file;
 
 fi
 
