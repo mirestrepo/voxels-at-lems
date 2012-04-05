@@ -9,6 +9,7 @@ You need to set up the main path, where there should be a folder called frames o
 In the top directory there should also be bundler output file bundleX.out where X is the focal length used by bundler.
 """
 
+
 #*******************************************************************************************************
 # SET UP ENVIROMENT
 #*******************************************************************************************************
@@ -32,7 +33,8 @@ render_interactive=false;
 render_trajectory=false;
 
 #crop_scene
-create_scene_from_xml=true;
+create_scene_from_bundler=true;
+#create_scene_from_xml=true;
 #build_model=true;
 #crop_scene=true;
 #render=true;
@@ -40,13 +42,31 @@ create_scene_from_xml=true;
 #render_interactive=true;
 #render_trajectory=true;
 
+#******************************************************************************************************* 
+# Grab the first three inputs
+#*******************************************************************************************************
+
+nargs=$#;
+
+if [ $nargs -eq 1 ]; then
+    site_number=$1
+    refine_chuncks=1
+    refine_repeat=1
+elif [ $nargs -eq 3 ]; then
+    site_number=$1
+    refine_chuncks=$2
+    refine_repeat=$3
+else
+    echo "Invalid number of arguments"
+    exit -1;
+fi
 
 #******************************************************************************************************* 
 # DEFINE PATHS
 #*******************************************************************************************************
 #Top directory containing frams_original
-#root_dir="/volumes/vision/video/helicopter_providence/3d_models_3_12/site_1";
-root_dir="/data/helicopter_providence_3_12/site_8";
+root_dir="/volumes/vision/video/helicopter_providence/3d_models_3_12/site_$site_number";
+#root_dir="/data/helicopter_providence_3_12/site_$site_number";
 
 # directory where boxm2 scene is stored
 model_dirname=model;
@@ -56,6 +76,8 @@ boxm2_dir=$root_dir/$model_dirname;
 # Size of images
 NI=1280;
 NJ=720;
+
+
 
 #*******************************************************************************************************
 # Crop boxm2_scene to a half-open interval [min, max)
@@ -76,7 +98,7 @@ fi
 # Create BOXM2 scene parameter file
 #*******************************************************************************************************
 if $create_scene_from_bundler; then
-   python boxm2_create_scene.py -c $root_dir/output_fixf_final.nvm -i "$root_dir/frames_jpg" -a "boxm2_mog3_grey" -o "$root_dir/nvm_out" -p "$root_dir/scene_creation_log.txt"
+   python boxm2_create_scene.py -c $root_dir/output_fixf_final.nvm -i "$root_dir/frames_png" -a "boxm2_mog3_grey" -o "$root_dir/nvm_out" -p "$root_dir/scene_creation_log.txt"
 fi
 
 
@@ -99,11 +121,13 @@ if $build_model; then
     #device_name="cpp";
     
     #Train and refine
-    CHUNKS=15
+    CHUNKS=$refine_chuncks;
+    
+    
     failed=0;
     failed_r=0;
     failed_u=0;
-    for((i=0; i < 3; i++))
+    for((i=0; i < $refine_repeat; i++))
     do
         echo "Iteration = $i --Refine ON"
         for((chunk=0; chunk < CHUNKS; chunk++))
@@ -111,23 +135,24 @@ if $build_model; then
            python build_model.py -s $root_dir -x "$model_dirname/$scene_file" --imtype "$imtype" -g $device_name -v .06 --initFrame $chunk --skipFrame $CHUNKS --clearApp 1
            
            status=${?}
-           if [ $status -eq -10 ]; then 
+           if [ $status -eq 1 ]; then 
+                echo "status: $status"
                 failed=$(($failed+1))
                 failed_r=$(($failed_r+1))
                 echo "[Error] Something Failed. Refine ON. Iteration $i, Chunck $chunk. Num errors $failed"
                 #exit -1
            fi
-           if [ $status -eq -15 ]; then 
+           if [ $status -eq 2 ]; then 
                 failed=$(($failed+1))
                 failed_u=$(($failed_u+1))
                 echo "[Error] Something Failed. Refine ON. Iteration $i, Chunck $chunk. Num errors $failed"
                 #exit -1
            fi
         done
-     done
+    done
     
     #Train without refining
-    CHUNKS=2
+    CHUNKS=3
     failed2=0;
     failed_r2=0;
     failed_u2=0;
@@ -139,24 +164,25 @@ if $build_model; then
             python build_model.py -s $root_dir -x "$model_dirname/$scene_file" --imtype "$imtype" -g $device_name -v .06 --refineoff 1 --initFrame $chunk --skipFrame $CHUNKS
             
             status=${?}
-            
-            if [ $status -eq -10 ]; then 
+            echo "status: $status"
+            if [ $status -eq 1 ]; then 
                 failed2=$(($failed2+1))
                 failed_r2=$(($failed_r2+1))
-                echo "[Error] Something Failed. Refine OFF. Iteration $i, Chunck $chunk. Num errors $failed"
+                echo "[Error] Something Failed. Refine OFF. Iteration $i, Chunck $chunk. Num errors $failed2"
                 #exit -1
             fi
-            if [ $status -eq -15 ]; then 
+            if [ $status -eq 2 ]; then 
                 failed2=$(($failed2+1))
                 failed_u2=$(($failed_u2+1))
-                echo "[Error] Something Failed. Refine OFF. Iteration $i, Chunck $chunk. Num errors $failed"
+                echo "[Error] Something Failed. Refine OFF. Iteration $i, Chunck $chunk. Num errors $failed2"
                 #exit -1
             fi
         done
      done
 
-    echo "Refine ON errors: u-$failed_u, r-$failed_r, t-$failed"
-    echo "Refine OFF errors: u-$failed_u2, r-$failed_r2, t-$failed2"
+    status_file=$root_dir/"train_status.txt";
+    echo -e "Refine ON errors: u-$failed_u, r-$failed_r, t-$failed \nRefine OFF errors: u-$failed_u2, r-$failed_r2, t-$failed2" > $status_file;
+
 
 fi
 
