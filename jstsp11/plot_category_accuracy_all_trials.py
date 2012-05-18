@@ -2,21 +2,22 @@
 """
 Created on Mon Mar  7 14:38:46 2011
 Plot pca test error vs train error
-@author: -
+@author: Isabel Restrepo
+Brown University
 """
-
-# Computes the gaussian gradients on a boxm_alpha_scene
 
 import os;
 import optparse;
 import time;
 import sys;
 import numpy as np
+import matplotlib
+matplotlib.use("TkAgg")
 import matplotlib.pyplot as plt
 import glob
 
 
-main_dir="/Users/isa/Experiments/BOF/helicopter_providence";
+main_dir="/Volumes/voxels_archive/Experiments/BOF/helicopter_providence";
 
 
 
@@ -54,7 +55,7 @@ for trial in trials:
    
 yerr_up =  accuracy.max(0)-accuracy.mean(0);
 yerr_down = accuracy.mean(0)-accuracy.min(0);
-ax.errorbar(x, accuracy.mean(0),yerr=[yerr_down, yerr_up], fmt='--o', label='Taylor - EVM', color=colors[0], capsize=15)
+ax.errorbar(x, accuracy.mean(0),yerr=[yerr_down, yerr_up], fmt='--o', label='Taylor - EVM', color=colors[0], capsize=15, markersize=6)
 print accuracy;
 
 
@@ -77,7 +78,7 @@ for trial in trials:
    
 yerr_up =  accuracy.max(0)-accuracy.mean(0);
 yerr_down = accuracy.mean(0)-accuracy.min(0);
-ax.errorbar(x, accuracy.mean(0),yerr=[yerr_down, yerr_up], fmt='--o', label='Taylor - PMVS [Furukawa and Ponce]', color=colors[2], capsize=18)
+ax.errorbar(x, accuracy.mean(0),yerr=[yerr_down, yerr_up], fmt='--*', label='Taylor - PMVS [Furukawa and Ponce]', color=colors[2], capsize=18, markersize=8)
 print accuracy;
 print '----------'
 print yerr_up;
@@ -86,54 +87,54 @@ print yerr_up;
 
 
 #Plot Taylor - PMVS smoothing
-#print "Taylor - PMVS smoothing";
-#param_dir= main_dir + "/pmvs/gauss_1";
-#
-#accuracy = np.zeros((len(trials),ncategories));
-#
-#row=0;
-#for trial in trials:
-#  
-#    bof_dir=param_dir +"/bof_cross_validation/trial_"+str(trial);
-#    classification_dir=bof_dir +"/classification_" + str(num_means)
-#    cm_file=classification_dir + "/confussion_matrix.txt";
-#    #confusion matrix percent
-#    cm = np.genfromtxt(cm_file);  
-#    accuracy[row,:]=cm.diagonal();
-#    row = row+1;
-#
-#   
-#yerr_up =  accuracy.max(0)-accuracy.mean(0);
-#yerr_down = accuracy.mean(0)-accuracy.min(0);
-#ax.errorbar(x, accuracy.mean(0),yerr=[yerr_down, yerr_up], fmt='--o', label='Taylor - PMVS+smoothing', color=colors[3], capsize=13)
-#
-#print accuracy;
-#print '----------'
-#print yerr_up;
+print "Taylor - PMVS smoothing";
+param_dir= main_dir + "/pmvs/gauss_1";
 
-##Plot Taylor - Alpha
-#print "Taylor - Alpha";
-#
-#param_dir= main_dir + "/taylor_alpha";
-##param_dir= main_dir + "/beaudet_corners";
-#
-#accuracy = np.zeros((len(trials),ncategories));
-#row=0;
-#for trial in trials:
-#  
-#    bof_dir=param_dir +"/bof_cross_validation/trial_"+str(trial);
-#    classification_dir=bof_dir +"/classification_" + str(num_means)
-#    cm_file=classification_dir + "/confussion_matrix.txt";
-#    #confusion matrix percent
-#    cm = np.genfromtxt(cm_file);  
-#    accuracy[row,:]=cm.diagonal();
-#    row=row + 1;
-#   
-#yerr_up =  accuracy.max(0)-accuracy.mean(0);
-#yerr_down = accuracy.mean(0)-accuracy.min(0);
-#ax.errorbar(x, accuracy.mean(0),yerr=[yerr_down, yerr_up], fmt='--o', label="Taylor - Occupancy", color=colors[1], capsize=15)
-#
-#print accuracy;
+accuracy = np.zeros((len(trials),ncategories));
+
+row=0;
+for trial in trials:
+  
+    bof_dir=param_dir +"/bof_cross_validation/trial_"+str(trial);
+    classification_dir=bof_dir +"/classification_" + str(num_means)
+    cm_file=classification_dir + "/confussion_matrix.txt";
+    #confusion matrix percent
+    cm = np.genfromtxt(cm_file);  
+    accuracy[row,:]=cm.diagonal();
+    row = row+1;
+
+   
+yerr_up =  accuracy.max(0)-accuracy.mean(0);
+yerr_down = accuracy.mean(0)-accuracy.min(0);
+ax.errorbar(x, accuracy.mean(0),yerr=[yerr_down, yerr_up], fmt='--^', label='Taylor - PMVS+smoothing', color=colors[3], capsize=13,markersize=8)
+
+print accuracy;
+print '----------'
+print yerr_up;
+
+#Plot Taylor - Alpha
+print "Taylor - Alpha";
+
+param_dir= main_dir + "/taylor_alpha";
+#param_dir= main_dir + "/beaudet_corners";
+
+accuracy = np.zeros((len(trials),ncategories));
+row=0;
+for trial in trials:
+  
+    bof_dir=param_dir +"/bof_cross_validation/trial_"+str(trial);
+    classification_dir=bof_dir +"/classification_" + str(num_means)
+    cm_file=classification_dir + "/confussion_matrix.txt";
+    #confusion matrix percent
+    cm = np.genfromtxt(cm_file);  
+    accuracy[row,:]=cm.diagonal();
+    row=row + 1;
+   
+yerr_up =  accuracy.max(0)-accuracy.mean(0);
+yerr_down = accuracy.mean(0)-accuracy.min(0);
+ax.errorbar(x, accuracy.mean(0),yerr=[yerr_down, yerr_up], fmt='--v', label="Taylor - Occupancy", color=colors[1], capsize=15, markersize=8)
+
+print accuracy;
 
 
 ax.set_xlabel('Object Category',fontsize= 18);
@@ -146,8 +147,7 @@ ax.set_ylim((0,1.01));
 
 ylabels = np.arange(0,1.2,0.2);
 ax.set_yticklabels(ylabels, fontsize= 14)
-handles, labels = ax.get_legend_handles_labels()
-ax.legend(handles, labels,'lower center')
+plt.legend(loc='lower center', frameon=False);  
 plt.show();
 
 
