@@ -8,7 +8,8 @@ for((i=16; i <17; i++))
     if [ ! -d "$to_dir/site_$i" ]; then
        mkdir $to_dir/site_$i
     fi
-    cp $from_dir/site_$i/output_fixf_final.nvm $to_dir/site_$i/output_fixf_final.nvm
+#    cp $from_dir/site_$i/output_fixf_final.nvm $to_dir/site_$i/output_fixf_final.nvm
+    cp -R $from_dir/site_$i/nvm_out/imgs $to_dir/site_$i/imgs
 done
 
 
