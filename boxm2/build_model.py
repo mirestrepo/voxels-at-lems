@@ -25,6 +25,8 @@ parser.add_option("-v", "--variance", action="store", type="float", dest="var", 
 parser.add_option("-d", "--downSamp", action="store", type="float", dest="downSamp", default="1.0", help="Specify if images/cams should be downsampled before updating")
 parser.add_option("-n", "--skipFrame", action="store", type="int", dest="skip", default=1, help="Specify how many images to use in each pass (1=every, 2=every other...)")
 parser.add_option("-i", "--initFrame", action="store", type="int", dest="initFrame", default=0, help="Specify the first frame to start ")
+parser.add_option("-p", "--printFile" , action="store", type="string", dest="std_file", default="", help="if given, the std out is redirected to this file")
+
 (options, args) = parser.parse_args()
 print options
 print args
@@ -41,6 +43,16 @@ REFINE_ON = not options.norefine
 SKIP_FRAME = options.skip;
 INIT_FRAME = options.initFrame;
 CLEAR_APP=options.clearApp;
+
+if options.std_file != "":
+   saveout = sys.stdout   # save initial state of stdout
+   print saveout
+   print "STD_OUT is being redirected" 
+   set_stdout(options.std_file)
+
+
+
+
 #################################
 #Initialize a GPU
 print "Initializing GPU"
@@ -118,6 +130,8 @@ for idx, i in enumerate(frames):
         
       #refine
     if idx%REFINE_INTERVAL==9 and REFINE_ON:
+      
+      #if refining in the gpu, check for errors to not corruot the cache
       ncells = scene.refine();
       if(ncells < 0) :
         print "Refined Failed, clearing cache and exiting:"
@@ -141,9 +155,13 @@ for idx, i in enumerate(frames):
 #write and clear cache before exiting    
 scene.write_cache(); 
 scene.clear_cache();
+boxm2_batch.clear();
+
+if options.std_file != "":
+   reset_stdout();
+   print "STD_OUT is being reset" 
 
 print "Done"
 
-boxm2_batch.clear();
 sys.exit(0)
 
