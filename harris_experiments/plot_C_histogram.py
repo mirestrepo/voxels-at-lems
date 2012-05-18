@@ -2,10 +2,9 @@
 """
 Created on Mon Mar  7 14:38:46 2011
 Plot pca test error vs train error
-@author: -
+@author: Isabel Restrepo
 """
 
-# Computes the gaussian gradients on a boxm_alpha_scene
 
 import os;
 import optparse;
