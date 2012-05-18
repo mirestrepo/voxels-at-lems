@@ -1,0 +1,4 @@
+Computer Vision scripts developed at Brown University. Most of this scripts are used to understand volumetric scenes.
+Most python scripts called c++ bindings that are part of the VXL vision libraries http://sourceforge.net/projects/vxl/
+
+This sources are under constant development.
