@@ -1,13 +1,13 @@
  #!/bin/bash
-"""
-Created on Mon April 23, 2011
-
-@author:Isabel Restrepo
-
-A script that encapsulates all steps needed to create a boxm2 scene from bundler output.
-You need to set up the main path, where there should be a folder called frames original with all original images (those used by bundler).
-In the top directory there should also be bundler output file bundleX.out where X is the focal length used by bundler.
-"""
+#*******************************************************************************************************
+#Created on Mon April 23, 2011
+#
+#author:Isabel Restrepo
+#
+#A script that encapsulates all steps needed to create a boxm2 scene from bundler output.
+#You need to set up the main path, where there should be a folder called frames original with all original images (those used by bundler).
+#In the top directory there should also be bundler output file bundleX.out where X is the focal length used by bundler.
+#*******************************************************************************************************
 
 #*******************************************************************************************************
 # SET UP ENVIROMENT
@@ -15,6 +15,7 @@ In the top directory there should also be bundler output file bundleX.out where 
 CONFIGURATION=Release;
 EXE_PATH=/Projects/vxl/bin/$CONFIGURATION/contrib/brl/bseg/boxm2/ocl/exe
 export PYTHONPATH=/Projects/vxl/bin/$CONFIGURATION/lib:/Projects/vxl/src/contrib/brl/bseg/boxm2/pyscripts:/Projects/vxl/src/contrib/brl/bseg/boxm2/pyscripts/change:$PYTHONPATH
+SCRIPTS_PATH=/Projects/voxels-at-lems-git;
 
 #*******************************************************************************************************
 # DEFINE STEPS TO BE RUN
@@ -31,6 +32,8 @@ render=false;
 render_cropped=false;
 render_interactive=false;
 render_trajectory=false;
+compute_gauss_gradients=false;
+use_probe=false;
 
 
 create_scene_from_xml=true;
@@ -39,7 +42,11 @@ create_scene_from_xml=true;
 #render=true; 
 #render_cropped=true;
 #render_interactive=true;
+#render_circle=true;
 #render_trajectory=true;
+#compute_gauss_gradients=true;
+#use_probe=true;
+
 
 
 #******************************************************************************************************* 
@@ -47,10 +54,10 @@ create_scene_from_xml=true;
 #*******************************************************************************************************
 #Top directory containing frams_original
 #root_dir="/volumes/vision/video/helicopter_providence/3d_models_3_12/site_1";
-#root_dir="/data/helicopter_providence_3_12/site_12";
+root_dir="/data/helicopter_providence_3_12/site_12";
 
 # directory where boxm2 scene is stored
-model_dirname=model;
+model_dirname="model";
 boxm2_dir=$root_dir/$model_dirname;
 
 
@@ -61,12 +68,12 @@ NJ=720;
 #*******************************************************************************************************
 # Crop boxm2_scene to a half-open interval [min, max)
 #*******************************************************************************************************
-min_i=0;
+min_i=1;
 min_j=1;
 min_k=0;
 
-max_i=5;
-max_j=7;
+max_i=2;
+max_j=2;
 max_k=1;
 
 if $crop_scene; then
@@ -105,7 +112,6 @@ if $build_model; then
     scene_file="scene.xml"
     imtype="jpg"
     device_name="gpu1";
-    #device_name="cpp";
 
     #Train and refine
     CHUNKS=12;
@@ -173,11 +179,23 @@ if $build_model; then
 fi
 
 #*******************************************************************************************************
-# Render
+#compute_gauss_gradients
+#*******************************************************************************************************
+if $compute_gauss_gradients; then
+  scene_file="scene.xml"
+  imtype="jpg"
+  device_name="gpu1";
+  python $SCRIPTS_PATH/boxm2/boxm2_compute_gauss_gradients.py -s $root_dir -x "$model_dirname/$scene_file" -g $device_name --export_file "gauss_233_normals.ply" --use_sum true --p_thresh 0.1
+fi
+
+#*******************************************************************************************************
+# Render Viewing Trajectory
 #*******************************************************************************************************
 if $render_circle; then
-    python boxm2_render_circle.py --root_dir $root_dir --boxm2_dir $boxm2_dir
-
+    scene_file="scene.xml"
+    imtype="png"
+    device_name="gpu1";
+    python boxm2_render_circle.py -s $root_dir -x "$model_dirname/$scene_file" --imtype "$imtype" -g $device_name 
 fi
 
 #*******************************************************************************************************
@@ -209,4 +227,13 @@ if $render_trajectory; then
     python boxm2_render_traj.py --root_dir $root_dir --boxm2_dir $boxm2_dir
 fi
 
-
+#*******************************************************************************************************
+# Use intensity probe
+#*******************************************************************************************************
+if $use_probe; then
+    root_dir="/data/helicopter_providence_3_12/site_1";
+    scene_file="scene.xml"
+    cams_dir=$root_dir/cams_krt;
+    img_dir=$root_dir/imgs;
+    python intensity_probe.py -i $img_dir -c $cams_dir
+fi

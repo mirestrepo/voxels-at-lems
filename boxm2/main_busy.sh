@@ -25,6 +25,7 @@ crop_scene=false;
 create_scene_from_bundler=false;
 create_scene_from_xml=false;
 build_model=false;
+build_model_refine_cpp=false;
 crop_scene=false;
 render_circle=false;
 render=false;
@@ -32,10 +33,12 @@ render_cropped=false;
 render_interactive=false;
 render_trajectory=false;
 
+
 #crop_scene
-create_scene_from_bundler=true;
+#create_scene_from_bundler=true;
 #create_scene_from_xml=true;
 #build_model=true;
+build_model_refine_cpp=true;
 #crop_scene=true;
 #render=true;
 #render_cropped=true;
@@ -65,8 +68,8 @@ fi
 # DEFINE PATHS
 #*******************************************************************************************************
 #Top directory containing frams_original
-root_dir="/volumes/vision/video/helicopter_providence/3d_models_3_12/site_$site_number";
-#root_dir="/data/helicopter_providence_3_12/site_$site_number";
+#root_dir="/volumes/vision/video/helicopter_providence/3d_models_3_12/site_$site_number";
+root_dir="/data/helicopter_providence_3_12/site_$site_number";
 
 # directory where boxm2 scene is stored
 model_dirname=model;
@@ -132,7 +135,7 @@ if $build_model; then
         echo "Iteration = $i --Refine ON"
         for((chunk=0; chunk < CHUNKS; chunk++))
         do
-           python build_model.py -s $root_dir -x "$model_dirname/$scene_file" --imtype "$imtype" -g $device_name -v .06 --initFrame $chunk --skipFrame $CHUNKS --clearApp 1
+           python build_model.py -s $root_dir -x "$model_dirname/$scene_file" --imtype "$imtype" -g $device_name -v .06 --initFrame $chunk --skipFrame $CHUNKS --clearApp 1 -p "$root_dir/scene_refining_log.txt"
            
            status=${?}
            if [ $status -eq 1 ]; then 
@@ -161,7 +164,7 @@ if $build_model; then
         echo "Iteration = $i --Refine OFF"
         for((chunk=0; chunk < CHUNKS; chunk++))
         do
-            python build_model.py -s $root_dir -x "$model_dirname/$scene_file" --imtype "$imtype" -g $device_name -v .06 --refineoff 1 --initFrame $chunk --skipFrame $CHUNKS
+            python build_model.py -s $root_dir -x "$model_dirname/$scene_file" --imtype "$imtype" -g $device_name -v .06 --refineoff 1 --initFrame $chunk --skipFrame $CHUNKS -p "$root_dir/scene_updating_log.txt"
             
             status=${?}
             echo "status: $status"
@@ -185,6 +188,100 @@ if $build_model; then
 
 
 fi
+
+
+#*******************************************************************************************************
+# Build the Scene Refining in the GPU is buggy. This workflow refines using CPU
+#*******************************************************************************************************
+if $build_model_refine_cpp; then
+    
+    #To build the model we brake the image set in chucks because leaks on the GPU cache can corrupt the scene
+    #We are specially conservative while we refine
+    
+    scene_file="scene.xml"
+    imtype="png"
+    device_name="gpu1";
+    #device_name="cpp";
+    
+    #Train and refine
+    CHUNKS=$refine_chuncks;
+    
+    
+    failed=0;
+    failed_r=0;
+    failed_u=0;
+      
+    
+    for((i=0; i < $refine_repeat; i++))
+    do
+        python boxm2_update_model.py -s $root_dir -x "$model_dirname/$scene_file" --imtype "$imtype" -d $device_name -v .06 --initFrame 0 --skipFrame $CHUNKS
+
+   
+        echo "Iteration = $i --Refine ON"
+        for((chunk=1; chunk < CHUNKS; chunk++))
+        do
+        
+           python boxm2_refine_model.py -s $root_dir -x "$model_dirname/$scene_file" -d "cpp" 
+        
+           status=${?}
+           echo "status: $status"
+
+           if [ $status -eq 1 ]; then 
+                failed=$(($failed+1))
+                failed_r=$(($failed_r+1))
+                echo "[Error] Something Failed. Refine ON. Iteration $i, Chunck $chunk. Num errors $failed"
+                #exit -1
+            elif  [ $status -eq 5 ]; then
+                exit -1
+           fi
+        
+           python boxm2_update_model.py -s $root_dir -x "$model_dirname/$scene_file" --imtype "$imtype" -d $device_name -v .06 --initFrame $chunk --skipFrame $CHUNKS --clearApp 1
+           
+           status=${?}
+           echo "status: $status"
+
+           if [ $status -eq 1 ]; then 
+                failed=$(($failed+1))
+                failed_u=$(($failed_u+1))
+                echo "[Error] Something Failed. Refine ON. Iteration $i, Chunck $chunk. Num errors $failed"
+                #exit -1
+           elif  [ $status -eq 5 ]; then
+                exit -1
+           fi
+        
+
+        done
+    done
+    
+    #Train without refining
+    CHUNKS=2
+    failed2=0;
+    failed_u2=0;
+    for((i=0; i < 1; i++))
+    do
+        echo "Iteration = $i --Refine OFF"
+        for((chunk=0; chunk < CHUNKS; chunk++))
+        do
+            python boxm2_update_model.py -s $root_dir -x "$model_dirname/$scene_file" --imtype "$imtype" -d $device_name -v .06 --initFrame $chunk --skipFrame $CHUNKS
+                       
+            status=${?}
+            echo "status: $status"
+            if [ $status -eq 1 ]; then 
+                failed2=$(($failed2+1))
+                failed_u2=$(($failed_u2+1))
+                echo "[Error] Something Failed. Refine OFF. Iteration $i, Chunck $chunk. Num errors $failed2"
+                #exit -1
+            fi
+        done
+     done
+
+    status_file=$root_dir/"train_status.txt";
+    echo -e "Refine ON errors: u-$failed_u,r-$failed, t-$failed \nRefine OFF errors: u-$failed_u2, t-$failed2" > $status_file;
+
+
+fi
+
+
 
 #*******************************************************************************************************
 # Render
