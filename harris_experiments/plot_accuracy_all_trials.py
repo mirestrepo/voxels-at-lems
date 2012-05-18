@@ -12,6 +12,8 @@ import optparse;
 import time;
 import sys;
 import numpy as np
+import matplotlib
+matplotlib.use("TkAgg")
 import matplotlib.pyplot as plt
 import glob
 
@@ -32,6 +34,7 @@ fig=plt.figure()
 ax = fig.add_subplot(111)
 plt.autoscale(tight=False);
 
+harris_marker=['--o', '--*','--^' ];
 for k in range(1,4):
   param_dir= main_dir + "/corners/k_" + str(k);
   #param_dir= main_dir + "/beaudet_corners";
@@ -62,7 +65,7 @@ for k in range(1,4):
      
   yerr_up =  accuracy.max(0)-accuracy.mean(0);
   yerr_down = accuracy.mean(0)-accuracy.min(0);
-  ax.errorbar(thresh, accuracy.mean(0),yerr=[yerr_down, yerr_up], fmt='--o', label=k_label[k-1], color=colors[k-1], capsize=12)
+  ax.errorbar(thresh, accuracy.mean(0),yerr=[yerr_down, yerr_up], fmt=harris_marker[k-1], label=k_label[k-1], color=colors[k-1], capsize=12, markersize=8)
   plt.hold(True);
 
 #Plot det(Hessian)
@@ -94,22 +97,23 @@ for trial in trials:
  
 yerr_up =  accuracy.max(0)-accuracy.mean(0);
 yerr_down = accuracy.mean(0)-accuracy.min(0);
-ax.errorbar(thresh, accuracy.mean(0),yerr=[yerr_down, yerr_up], fmt='--o', label='DoH', color='r', capsize=12)
+ax.errorbar(thresh, accuracy.mean(0),yerr=[yerr_down, yerr_up], fmt='--v', label='DoH', color='r', capsize=12, markersize=8)
 
 
 
 ax.set_xlabel('Percentage of salient features    ',fontsize= 18);
 ax.set_ylabel('Accuracy',fontsize= 18);  
-x=np.arange(0,101,10);#[1,5,10,20,50,75,90];
+x=np.arange(0,100,10);#[1,5,10,20,50,75,90];
 ax.set_xticklabels(x, fontsize= 14);
 ax.set_xticks(x)
+ax.set_xlim((0, 100));
 
-ax.set_ylim((0,1.01));
-ylabels = np.arange(0,1.2,0.2);
+
+ax.set_ylim((0,1.02));
+ylabels = np.arange(0,1.1,0.2);
 ax.set_yticklabels(ylabels, fontsize= 14)
 
-handles, labels = ax.get_legend_handles_labels()
-ax.legend(handles, labels,'lower right')
+plt.legend(loc='lower center', frameon=False);
 plt.show();
 
 
