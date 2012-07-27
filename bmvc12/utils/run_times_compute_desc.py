@@ -55,7 +55,7 @@ yerr_up = [np.max(planes) - np.average(planes), np.max(cars) - np.average(cars),
 yerr_down = [np.average(planes) - np.min(planes), np.average(cars) - np.min(cars), np.average(houses) - np.min(houses), np.average(buildings) - np.min(buildings), np.average(parking) - np.min(parking)];
 
 #ax.errorbar(x, y, yerr=[yerr_down, yerr_up], fmt='--o', label="FPFH", capsize=12)
-ax.plot(x, np.log(y), 'o', label="FPFH")
+ax.plot(x, np.log(y), 'o', label="FPFH", markersize=9)
 
 
 
@@ -83,7 +83,7 @@ yerr_up = [np.max(planes) - np.average(planes), np.max(cars) - np.average(cars),
 yerr_down = [np.average(planes) - np.min(planes), np.average(cars) - np.min(cars), np.average(houses) - np.min(houses), np.average(buildings) - np.min(buildings), np.average(parking) - np.min(parking)];
 
 #ax.errorbar(x, y, yerr=[yerr_down, yerr_up], fmt='--o', label="SHOT", capsize=12)
-ax.plot(x, np.log(y), 'x', label="SHOT")
+ax.plot(x, np.log(y), 'x', label="SHOT", markersize=10)
 
 
 
@@ -110,7 +110,7 @@ yerr_up = [np.max(planes) - np.average(planes), np.max(cars) - np.average(cars),
 yerr_down = [np.average(planes) - np.min(planes), np.average(cars) - np.min(cars), np.average(houses) - np.min(houses), np.average(buildings) - np.min(buildings), np.average(parking) - np.min(parking)];
 
 #ax.errorbar(x, y, yerr=[yerr_down, yerr_up], fmt='--o', label="Spin Image", capsize=12)
-ax.plot(x, np.log(y), '^', label="Spin Image")
+ax.plot(x, np.log(y), '^', label="Spin Image", markersize=10)
 
 
 ## ShapeContext
@@ -136,13 +136,13 @@ yerr_up = [np.max(planes) - np.average(planes), np.max(cars) - np.average(cars),
 yerr_down = [np.average(planes) - np.min(planes), np.average(cars) - np.min(cars), np.average(houses) - np.min(houses), np.average(buildings) - np.min(buildings), np.average(parking) - np.min(parking)];
 
 #ax.errorbar(x, y, yerr=[yerr_down, yerr_up], fmt='--o', label="Shape Context", capsize=12)
-ax.plot(x, np.log(y), '*', label="Shape Context")
+ax.plot(x, np.log(y), '*', label="Shape Context", markersize=12)
 
-ax.set_xlabel('Object Category', fontsize= 18);
-ax.set_ylabel('Log Time (seconds)', fontsize= 18);  
+ax.set_xlabel('Object Category', fontsize= 20);
+ax.set_ylabel('Log Time (seconds)', fontsize= 20);  
 class_names = ["Plane", "Car", "House", "Buildings", "Parking"];
 ax.set_xticks(x)
-ax.set_xticklabels(class_names ,fontsize= 14)
+ax.set_xticklabels(class_names ,fontsize= 18)
 ax.set_xlim( (-0.2,4.2) );
 ax.set_ylim((-4.5,10));
 
