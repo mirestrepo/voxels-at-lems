@@ -1,4 +1,6 @@
- # Author : Andrew Miller
+#!/usr/bin/env python
+# encoding: utf-8
+# Author : Andrew Miller
 # Modifications: Isabel Restrepo
 # Script to update a boxm2 scene
 

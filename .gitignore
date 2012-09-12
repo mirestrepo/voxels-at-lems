@@ -1,0 +1,7 @@
+
+boxm2/boxm2WriteSceneXML.pyc
+bmvc12/logs/*
+.idea/*
+*.pyc
+*.ply
+*.log

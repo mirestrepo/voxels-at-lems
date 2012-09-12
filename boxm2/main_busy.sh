@@ -38,12 +38,14 @@ render_trajectory=false;
 #create_scene_from_bundler=true;
 #create_scene_from_xml=true;
 #build_model=true;
-build_model_refine_cpp=true;
+#build_model_refine_cpp=true;
 #crop_scene=true;
 #render=true;
 #render_cropped=true;
 #render_interactive=true;
+render_circle=true;
 #render_trajectory=true;
+
 
 #******************************************************************************************************* 
 # Grab the first three inputs
@@ -60,8 +62,9 @@ elif [ $nargs -eq 3 ]; then
     refine_chuncks=$2
     refine_repeat=$3
 else
-    echo "Invalid number of arguments"
-    exit -1;
+    site_number=-1
+    refine_chuncks=10
+    refine_repeat=1
 fi
 
 #******************************************************************************************************* 
@@ -69,7 +72,9 @@ fi
 #*******************************************************************************************************
 #Top directory containing frams_original
 #root_dir="/volumes/vision/video/helicopter_providence/3d_models_3_12/site_$site_number";
-root_dir="/data/helicopter_providence_3_12/site_$site_number";
+#root_dir="/data/helicopter_providence_3_12/site_$site_number";
+root_dir="/data/reg3d_eval/downtown_dan/trial_0"
+#root_dir="/data/reg3d_eval/downtown_dan/original"
 
 # directory where boxm2 scene is stored
 model_dirname=model;
@@ -87,7 +92,7 @@ NJ=720;
 #*******************************************************************************************************
 if $crop_scene; then
     min_i=0;
-    min_j=1;
+    min_j=1; 
     min_k=0;
 
     max_i=5;
@@ -119,11 +124,11 @@ if $build_model; then
     #We are specially conservative while we refine
     
     scene_file="scene.xml"
-    imtype="jpg"
+    imtype="tif"
     device_name="gpu1";
     #device_name="cpp";
     
-    #Train and refine
+    #Train and refine 
     CHUNKS=$refine_chuncks;
     
     
@@ -191,7 +196,7 @@ fi
 
 
 #*******************************************************************************************************
-# Build the Scene Refining in the GPU is buggy. This workflow refines using CPU
+# Build the Scene Refining in the GPU is buggy. This workflow refines using CPU - Howwever CPU refine gets outdated often
 #*******************************************************************************************************
 if $build_model_refine_cpp; then
     
@@ -199,21 +204,21 @@ if $build_model_refine_cpp; then
     #We are specially conservative while we refine
     
     scene_file="scene.xml"
-    imtype="png"
+    imtype="tif"
     device_name="gpu1";
     #device_name="cpp";
     
-    #Train and refine
+    #Train and refine -- you want something like num_images/CHUNKS = 10
     CHUNKS=$refine_chuncks;
     
     
     failed=0;
     failed_r=0;
     failed_u=0;
-      
     
     for((i=0; i < $refine_repeat; i++))
     do
+        
         python boxm2_update_model.py -s $root_dir -x "$model_dirname/$scene_file" --imtype "$imtype" -d $device_name -v .06 --initFrame 0 --skipFrame $CHUNKS
 
    
@@ -284,18 +289,13 @@ fi
 
 
 #*******************************************************************************************************
-# Render
+# Render Viewing Trajectory
 #*******************************************************************************************************
 if $render_circle; then
-    python boxm2_render_circle.py --root_dir $root_dir --boxm2_dir $boxm2_dir
-
-fi
-
-#*******************************************************************************************************
-# Render
-#*******************************************************************************************************
-if $render; then
-    $EXE_PATH/boxm2_ocl_render_view  -scene $boxm2_dir/uscene.xml -ni $NI -nj $NJ -gpu_idx 1
+    scene_file="scene.xml"
+    imtype="tif"
+    device_name="gpu1";
+    python boxm2_render_circle.py -s $root_dir -x "$model_dirname/$scene_file" --imtype "$imtype" -g $device_name 
 fi
 
 #*******************************************************************************************************
@@ -309,7 +309,7 @@ fi
 # Interactive render
 #*******************************************************************************************************
 if $render_interactive; then
-    $EXE_PATH/boxm2_ocl_render_view  -scene $boxm2_dir/scene.xml -ni $NI -nj $NJ -camdir $root_dir/cams_krt -imgdir $root_dir/imgs -gpu_idx 1
+   $EXE_PATH/boxm2_ocl_render_view  -scene $boxm2_dir/scene.xml -ni $NI -nj $NJ -camdir $root_dir/cams_krt -imgdir $root_dir/imgs -gpu_idx 1
 fi
     
 
@@ -317,7 +317,8 @@ fi
 # Render spacetime using a trajectory
 #*******************************************************************************************************
 if $render_trajectory; then
-    python boxm2_render_traj.py --root_dir $root_dir --boxm2_dir $boxm2_dir
+    scene_file="scene.xml"
+    python boxm2_render_trajectory.py -s $root_dir -x "$model_dirname/$scene_file" -g "gpu1"
 fi
 
-
+#

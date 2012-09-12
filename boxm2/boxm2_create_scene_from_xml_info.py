@@ -1,8 +1,27 @@
-#THIS IS /helicopter_providence/middletown_3_29_11/site1_planes/boxm2_site1_1/boxm2_create_scene.py
-from boxm2WriteSceneXML import *
+#!/usr/bin/env python
+# encoding: utf-8
+#########################################################
+# Author: Isabel Restrepo
+# 2011
+# Create scene.xml from info.xml such as
+# *******sample scene_info.xml**************************
+#<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+#<bwm_info_for_boxm2>
+#<bbox maxx="-1235" maxy="-2703.5" maxz="-3184.6"
+#      minx="-1275.3" miny="-2770.8" minz="-3246.1">
+#</bbox>
+#<resolution val="0.042808">
+#</resolution>
+#<ntrees ntrees_x="48" ntrees_y="48" ntrees_z="48">
+#</ntrees>
+#</bwm_info_for_boxm2> 
+# **********end scene_info.xml**************************
+#########################################################
+
 import optparse
 from xml.etree.ElementTree import ElementTree
 import os, sys
+from boxm2WriteSceneXML import *
 
 
 #Parse inputs

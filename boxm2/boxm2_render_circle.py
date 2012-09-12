@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+# encoding: utf-8
 # Author : Andrew Miller
 # Modifications: Isabel Restrepo
 
@@ -13,7 +15,9 @@ from optparse import OptionParser
 
 ####################################################### 
 # handle inputs                                       #
-#scene is given as first arg, figure out paths        #
+# scene is given as first arg, figure out paths       #
+####################################################### 
+
 parser = OptionParser()
 parser.add_option("-s", "--sceneroot", action="store", type="string", dest="sceneroot", help="root folder for this scene")
 parser.add_option("-x", "--xmlfile", action="store", type="string", dest="xml", default="uscene.xml", help="scene.xml file name (model/uscene.xml, model_fixed/scene.xml, rscene.xml)")
@@ -27,8 +31,6 @@ parser.add_option("-p", "--printFile" , action="store", type="string", dest="std
 print options
 print args
 
-# handle inputs
-#scene is given as first arg, figure out paths
 scene_root = options.sceneroot; 
 
 # Set some update parameters
@@ -46,8 +48,10 @@ if options.std_file != "":
 
 
 
-#################################
+####################################################### 
 #Initialize a GPU
+####################################################### 
+
 print "Initializing GPU"
 
 os.chdir(scene_root)
@@ -57,8 +61,10 @@ if not os.path.exists(scene_path):
   sys.exit(-1)
 scene = boxm2_scene_adaptor (scene_path, GPU);  
 
-#################################
+####################################################### 
 # Get list of imgs and cams
+####################################################### 
+
 train_imgs = os.getcwd() + "/imgs/*." + options.itype
 train_cams = os.getcwd() + "/cams_krt/*.txt"
 exp_imgs_dir = os.getcwd() + "/exp_imgs_360"
@@ -88,6 +94,10 @@ frames = range(INIT_FRAME,len(imgs)-1, SKIP_FRAME);
 print "Training with frames:"
 print frames;
 
+
+####################################################### 
+# Render circle 
+####################################################### 
 for idx, i in enumerate(frames):   
     
     print "Iteration ", idx, " of ", len(frames) , " on chunk " , INIT_FRAME
@@ -95,17 +105,23 @@ for idx, i in enumerate(frames):
     #load image and camera
     pcam        = load_perspective_camera(cams[i]); 
     img, ni, nj = load_image (imgs[i]); 
-    exp_fname= exp_imgs_dir + "/exp_img_%(#)05d.tiff"%{"#":i};
+    exp_img_name = os.path.basename(cams[i])
+    exp_img_name = exp_img_name[:-len(".txt")];
+    exp_img_name = exp_img_name + ".tiff"
+    exp_fname= exp_imgs_dir + "/" + exp_img_name;
+    
     
     #render an expected image
+    print "Viewing Camera", cams[i]
     exp_image = render_grey(scene.scene, scene.active_cache, pcam, ni, nj, scene.device);
     save_image(exp_image, exp_fname)        
     
     #clean up
     remove_from_db([img, pcam, exp_image])
 
-
+####################################################### 
 #write and clear cache before exiting    
+####################################################### 
 scene.clear_cache();
 boxm2_batch.clear();
 

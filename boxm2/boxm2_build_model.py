@@ -1,5 +1,9 @@
+#!/usr/bin/env python
+# encoding: utf-8
+####################################################### 
 # Author : Andrew Miller
 # Modifications: Isabel Restrepo
+####################################################### 
 
 import random, os, sys;  
 from boxm2_scene_adaptor import *; 
@@ -13,7 +17,9 @@ from optparse import OptionParser
 
 ####################################################### 
 # handle inputs                                       #
-#scene is given as first arg, figure out paths        #
+# scene is given as first arg, figure out paths       #
+####################################################### 
+
 parser = OptionParser()
 parser.add_option("-s", "--sceneroot", action="store", type="string", dest="sceneroot", help="root folder for this scene")
 parser.add_option("-x", "--xmlfile", action="store", type="string", dest="xml", default="uscene.xml", help="scene.xml file name (model/uscene.xml, model_fixed/scene.xml, rscene.xml)")
@@ -53,8 +59,10 @@ if options.std_file != "":
 
 
 
-#################################
-#Initialize a GPU
+####################################################### 
+# Initialize a GPU
+####################################################### 
+
 print "Initializing GPU"
 
 os.chdir(scene_root)
@@ -64,8 +72,10 @@ if not os.path.exists(scene_path):
   sys.exit(-1)
 scene = boxm2_scene_adaptor (scene_path, GPU);  
 
-#################################
+####################################################### 
 # Get list of imgs and cams
+####################################################### 
+
 train_imgs = os.getcwd() + "/imgs/*." + options.itype
 train_cams = os.getcwd() + "/cams_krt/*.txt"
 exp_imgs_dir = os.getcwd() + "/exp_imgs"
@@ -90,14 +100,18 @@ if len(imgs) != len(cams) :
   print "CAMS: ", len(cams), "  IMGS: ", len(imgs)
   sys.exit();
 
-#################################
-#clear appearance model
+####################################################### 
+# Clear appearance model
+####################################################### 
+
 if(INIT_FRAME == (SKIP_FRAME - 1) and CLEAR_APP) :
     print("Deleting Apperance....")   
     move_appearance( os.getcwd() + "/model/"); 
 
 
-#update 
+####################################################### 
+# Update 
+####################################################### 
 frames = range(INIT_FRAME,len(imgs)-1, SKIP_FRAME); 
 print "Training with frames:"
 print frames;
@@ -128,10 +142,11 @@ for idx, i in enumerate(frames):
       save_image(exp_image, exp_fname)
       remove_from_db([exp_image])
         
-      #refine
+    #refine
     if idx%REFINE_INTERVAL==9 and REFINE_ON:
       
       #if refining in the gpu, check for errors to not corruot the cache
+      print "REFINING..."
       ncells = scene.refine();
       if(ncells < 0) :
         print "Refined Failed, clearing cache and exiting:"
@@ -151,10 +166,14 @@ for idx, i in enumerate(frames):
     #clean up
     remove_from_db([img, pcam])
 
-
-#write and clear cache before exiting    
+####################################################### 
+#write and clear cache before exiting 
+####################################################### 
+print "WRITING CACHE..." 
 scene.write_cache(); 
+print "CLEANING CACHE..." 
 scene.clear_cache();
+print "CLEANING DB..." 
 boxm2_batch.clear();
 
 if options.std_file != "":
