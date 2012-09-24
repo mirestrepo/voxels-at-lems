@@ -29,7 +29,7 @@ compute_normals=false;
 export_scene=false;
 thresh_PLY=false;
 flip_normals=false;
-compute_fpfh=false;
+compute_descriptors=false;
 compute_transformation=false;
 register_ia=false;
 register_icp=false;
@@ -37,18 +37,18 @@ visualize_reg=false;
 
 
 
-#create_scene_from_xml=true;
-#build_model=true;
-#render_circle=true;
-#compute_normals=true;
-#flip_normals=true;
-#export_scene=true;
-#thresh_PLY=true;
-#compute_fpfh=true;
+create_scene_from_xml=true;
+build_model=true;
+render_circle=true;
+compute_normals=true;
+flip_normals=true;
+export_scene=true;
+thresh_PLY=true;
+compute_descriptors=true;
 #register_ia=true;
 #register_icp=true;
 #compute_transformation=true;
-visualize_reg=true;
+# visualize_reg=true;
 
 #******************************************************************************************************* 
 # Grab the inputs and set local variables
@@ -71,10 +71,10 @@ else
 fi
 
 if [ $trial_number -eq -1 ]; then
-   root_dir="/data/reg3d_eval/downtown_dan/original"
+   root_dir="/Users/isa/Experiments/reg3d_eval/downtown_dan/original"
 else
-#  root_dir="/data/reg3d_eval/downtown_dan/trial_$trial_number"
-  root_dir="/data/reg3d_eval/downtown_dan/pert_01_$trial_number"
+    root_dir="/Users/isa/Experiments/reg3d_eval/downtown_dan/trial_$trial_number"
+  # root_dir="/data/reg3d_eval/downtown_dan/pert_01_$trial_number"
 fi
 
 echo "This is registration_eval/main.sh. Running with the following input arguments"
@@ -228,11 +228,12 @@ fi
 #*******************************************************************************************************
 #Compute Descriptors
 #*******************************************************************************************************
-if $compute_fpfh; then
+if $compute_descriptors; then
   njobs=8;
   radius=30;
   percentile=99
   vpcl_compute_omp_descriptors.py -s $root_dir --basenameIn "gauss_233_normals_pvn" -r $radius -p $percentile -d "FPFH" -j $njobs -v true
+  vpcl_compute_omp_descriptors.py -s $root_dir --basenameIn "gauss_233_normals_pvn" -r $radius -p $percentile -d "SHOT" -j $njobs -v true
 fi
 
 #*******************************************************************************************************

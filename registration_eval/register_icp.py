@@ -49,8 +49,6 @@ tform_fname =  src_features_dir + "/icp_transformation_" + str(percentile) + ".t
 tgt_scene_info = tgt_scene_root + "/scene_info.xml"
 tgt_scene_res = parse_scene_resolution(tgt_scene_info);
 
- 
-
 min_sample_distance = radius*tgt_scene_res;
 max_dist = 4*min_sample_distance;
 nr_iterations = 500;

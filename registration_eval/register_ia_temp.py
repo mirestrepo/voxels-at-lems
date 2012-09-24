@@ -22,6 +22,8 @@ parser.add_option("-r", "--radius", action="store", type="int", dest="radius", h
 parser.add_option("-p", "--percent", action="store", type="int", dest="percentile", help="data percentile");
 parser.add_option("-d", "--descriptor", action="store", type="string", dest="descriptor_type", help="name of the descriptor i.e FPFH");
 parser.add_option("-v", "--verbose", action="store_true", dest="verbose", default=False, help="verbose - if false std is redirected to a logfile");
+parser.add_option("-s", "--scale", action="store", type="float", default=1.0, dest="scale", help="apply scale");
+
 (opts, args) = parser.parse_args()
 print opts
 print args
@@ -55,7 +57,7 @@ tgt_scene_res = parse_scene_resolution(tgt_scene_info);
 min_sample_distance = radius*tgt_scene_res;
 max_dist = 4*min_sample_distance;
 nr_iterations = 50;
-
+scale = opts.scale;
 
 register_ia_sac( srcFname     = src_fname,
                  tgtFname     = tgt_fname,
@@ -66,7 +68,9 @@ register_ia_sac( srcFname     = src_fname,
                  descType     = descriptor_type,
                  minSampleDist= min_sample_distance,
                  maxCorrDist  = max_dist,
-                 numIter      = nr_iterations);
+                 numIter      = nr_iterations,
+                 scale        = scale);
+
 
 if not verbose:  
   py_vpcl.reset_stdout();

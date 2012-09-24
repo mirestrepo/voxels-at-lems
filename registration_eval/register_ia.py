@@ -8,70 +8,77 @@ Compute rigid transformation between two point clounds using feature corresponda
 import os, sys, subprocess
 import glob
 import time
-from optparse import OptionParser
+import argparse
 from xml.etree.ElementTree import ElementTree
 
 from vpcl_adaptor import *
 from boxm2_utils import *
 
-parser = OptionParser()
-parser.add_option("--srcRoot", action="store", type="string", dest="src_scene_root", help="root folder, this is where the .ply input and output files should reside")
-parser.add_option("--tgtRoot", action="store", type="string", dest="tgt_scene_root", help="root folder, this is where the .ply input and output files should reside")
-parser.add_option("--basenameIn", action="store", type="string", dest="basename_in", help="basename of .ply file")
-parser.add_option("-r", "--radius", action="store", type="int", dest="radius", help="radius (multiple of resolution)");
-parser.add_option("-p", "--percent", action="store", type="int", dest="percentile", help="data percentile");
-parser.add_option("-d", "--descriptor", action="store", type="string", dest="descriptor_type", help="name of the descriptor i.e FPFH");
-parser.add_option("-v", "--verbose", action="store_true", dest="verbose", default=False, help="verbose - if false std is redirected to a logfile");
-(opts, args) = parser.parse_args()
-print opts
-print args
+def main():
+  parser = argparse.ArgumentParser()
+  parser.add_argument("--srcRoot", action="store", type="string", dest="src_scene_root", help="root folder, this is where the .ply input and output files should reside")
+  parser.add_argument("--tgtRoot", action="store", type="string", dest="tgt_scene_root", help="root folder, this is where the .ply input and output files should reside")
+  parser.add_argument("--basenameIn", action="store", type="string", dest="basename_in", help="basename of .ply file")
+  parser.add_argument("-r", "--radius", action="store", type="int", dest="radius", help="radius (multiple of resolution)");
+  parser.add_argument("-p", "--percent", action="store", type="int", dest="percentile", help="data percentile");
+  parser.add_argument("-d", "--descriptor", action="store", type="string", dest="descriptor_type", help="name of the descriptor i.e FPFH");
+  parser.add_argument("-v", "--verbose", action="store_true", dest="verbose", default=False, help="verbose - if false std is redirected to a logfile");
+  parser.add_argument("-s", "--scale", action="store", type="float", dest="scale", help="apply scale");
 
-#path to where all scenes are
-src_scene_root=opts.src_scene_root;
-tgt_scene_root=opts.tgt_scene_root;
-radius = opts.radius; #gets multiplied by the resolution of the scene
-percentile = opts.percentile;
-descriptor_type = opts.descriptor_type;
-verbose=opts.verbose;
+  args = parser.parse_args()
+  
+  print args
 
-if not verbose:
-  py_vpcl.set_stdout("./logs/log_ia_" + descriptor_type + 'percetile' + str(percentile) +'.log')
+  #path to where all scenes are
+  src_scene_root=args.src_scene_root;
+  tgt_scene_root=args.tgt_scene_root;
+  radius = args.radius; #gets multiplied by the resolution of the scene
+  percentile = args.percentile;
+  descriptor_type = args.descriptor_type;
+  verbose=args.verbose;
 
-src_fname =  src_scene_root + "/" + opts.basename_in + "_" + str(percentile) + ".ply"
-src_features_dir = src_scene_root + "/" + descriptor_type + "_" + str(radius);
-src_features_fname = src_features_dir + "/descriptors_" + str(percentile) + ".pcd";
+  if not verbose:
+    py_vpcl.set_stdout("./logs/log_ia_" + descriptor_type + 'percetile' + str(percentile) +'.log')
 
-tgt_fname =  tgt_scene_root + "/" + opts.basename_in + "_" + str(percentile) + ".ply"
-tgt_features_dir = tgt_scene_root + "/" + descriptor_type + "_" + str(radius);
-tgt_features_fname = tgt_features_dir + "/descriptors_" + str(percentile) + ".pcd";
+  src_fname =  src_scene_root + "/" + args.basename_in + "_" + str(percentile) + ".ply"
+  src_features_dir = src_scene_root + "/" + descriptor_type + "_" + str(radius);
+  src_features_fname = src_features_dir + "/descriptors_" + str(percentile) + ".pcd";
 
-output_cloud_fname =  src_features_dir + "/ia_cloud_" + str(percentile) + ".pcd";
-tform_fname =  src_features_dir + "/ia_transformation_" + str(percentile) + ".txt";
+  tgt_fname =  tgt_scene_root + "/" + args.basename_in + "_" + str(percentile) + ".ply"
+  tgt_features_dir = tgt_scene_root + "/" + descriptor_type + "_" + str(radius);
+  tgt_features_fname = tgt_features_dir + "/descriptors_" + str(percentile) + ".pcd";
 
-tgt_scene_info = tgt_scene_root + "/scene_info.xml"
-tgt_scene_res = parse_scene_resolution(tgt_scene_info);
+  output_cloud_fname =  src_features_dir + "/ia_cloud_" + str(percentile) + ".pcd";
+  tform_fname =  src_features_dir + "/ia_transformation_" + str(percentile) + ".txt";
 
-
-min_sample_distance = radius*tgt_scene_res;
-max_dist = 4*min_sample_distance;
-nr_iterations = 500;
+  tgt_scene_info = tgt_scene_root + "/scene_info.xml"
+  tgt_scene_res = parse_scene_resolution(tgt_scene_info);
 
 
-register_ia_sac( srcFname     = src_fname,
-                 tgtFname     = tgt_fname,
-                 srcFeatures  = src_features_fname,
-                 tgtFeatures  = tgt_features_fname,
-                 outCloud     = output_cloud_fname,
-                 tformFname   = tform_fname,
-                 descType     = descriptor_type,
-                 minSampleDist= min_sample_distance,
-                 maxCorrDist  = max_dist,
-                 numIter      = nr_iterations);
+  min_sample_distance = radius*tgt_scene_res;
+  max_dist = 4*min_sample_distance;
+  nr_iterations = 50;
+  scale = args.scale;
 
-if not verbose:  
-  py_vpcl.reset_stdout();
+
+  register_ia_sac( srcFname     = src_fname,
+                   tgtFname     = tgt_fname,
+                   srcFeatures  = src_features_fname,
+                   tgtFeatures  = tgt_features_fname,
+                   outCloud     = output_cloud_fname,
+                   tformFname   = tform_fname,
+                   descType     = descriptor_type,
+                   minSampleDist= min_sample_distance,
+                   maxCorrDist  = max_dist,
+                   numIter      = nr_iterations,
+                   scale        = scale);
+
+  if not verbose:  
+    py_vpcl.reset_stdout();
      
           
-print "Done"
+  print "Done"
 
-sys.exit(0)
+
+if __name__ == "__main__":
+    main();

@@ -29,7 +29,7 @@ visualize_reg_ia=false;
 visualize_reg_icp=false;
 
 #compute_descriptor=true;
-register_ia=true;
+#register_ia=true;
 #register_icp=true;
 #compute_transformation=true;
 #visualize_reg_ia=true;
@@ -39,14 +39,17 @@ register_ia=true;
 # Grab the inputs and set local variables
 #*******************************************************************************************************
 
-nargs=$#;
+#nargs=$#;
+#
+#if [ $nargs -eq 1 ]; then
+#    trial_number=$1
+#else
+#    echo "Need scene number as an input"
+#    exit -1
+#fi
 
-if [ $nargs -eq 1 ]; then
-    trial_number=$1
-else
-    echo "Need scene number as an input"
-    exit -1
-fi
+trial_number=0;
+scale=73;
 
 root_dir="/data/reg3d_eval/downtown_dan/trial_$trial_number"
 #root_dir="/data/reg3d_eval/downtown_dan/original"
@@ -73,7 +76,7 @@ fi
 #*******************************************************************************************************
 if $register_ia; then
   tgtRoot="/data/reg3d_eval/downtown_dan/original"
-  ./register_ia_temp.py --srcRoot $root_dir --tgtRoot $tgtRoot --basenameIn "gauss_233_normals_pvn" -r $radius -p $percentile -d $descriptor -v true
+  ./register_ia_temp.py --srcRoot $root_dir --tgtRoot $tgtRoot --basenameIn "gauss_233_normals_pvn" -r $radius -p $percentile -d $descriptor -v true -s $scale
 fi
 
 if $register_icp; then
