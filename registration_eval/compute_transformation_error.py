@@ -14,7 +14,7 @@ from vpcl_adaptor import *
 import numpy as np
 from numpy import linalg as LA
 import transformations as tf
-
+import math
 
 LOG = None
 
@@ -54,89 +54,186 @@ def compute_error(trial, descriptor_type, niter, percentile=99):
     src_features_dir = "/Users/isa/Experiments/reg3d_eval/downtown_dan/trial_" +str(trial)+ "/" + descriptor_type + "_30"
 
     #read "geo-transformatiom"
+    print "************GEO**************"
     Tfile = "/data/lidar_providence/downtown_offset-1-financial-Hs.txt"
     Tfis = open(Tfile, 'r')
     lines=[];
     lines = Tfis.readlines();
-    geo_scale = float(lines[0])
+    scale_geo = float(lines[0])
+    Ss_geo = tf.scale_matrix(scale_geo);
     quat_line = lines[1].split(" ");
-    geo_quat = np.array([float(quat_line[1]), float(quat_line[2]), float(quat_line[3]), float(quat_line[0])])
+    quat_geo = np.array([float(quat_line[3]), float(quat_line[0]), float(quat_line[1]), float(quat_line[2])])
+    Rs_geo = tf.quaternion_matrix(quat_geo);
     trans_line = lines[2].split(" ");
-    geo_trans = np.array([[float(trans_line[0]), float(trans_line[1]), float(trans_line[2])]])
-    geo_trans = geo_trans.reshape(3,1);
+    trans_geo = np.array([float(trans_line[0]), float(trans_line[1]), float(trans_line[2])]);
     Tfis.close();
+    Hs_geo = Rs_geo.copy();
+    Hs_geo[:3, 3] = trans_geo[:3]
+    Hs_geo = Ss_geo.dot(Hs_geo)
+    print "Scale:\n", Ss_geo
+    print "R:\n", Rs_geo
+    print "T:\n", trans_geo
+    print "H:\n", Hs_geo
+    
 
     #read source to target "Ground Truth" Transformation
+    # print "************Hs INV**************"
+    # Tfile = src_scene_root + "/Hs_inv.txt";
+    # Tfis = open(Tfile, 'r')
+    # lines=[];
+    # lines = Tfis.readlines();
+    # scale = float(lines[0])
+    # Ss_inv = tf.scale_matrix(scale);
+    # quat_line = lines[1].split(" ");
+    # quat_inv = np.array([float(quat_line[3]), float(quat_line[0]), float(quat_line[1]), float(quat_line[2])])
+    # Rs_inv = tf.quaternion_matrix(quat_inv);
+    # trans_line = lines[2].split(" ");
+    # trans_inv = np.array([float(trans_line[0]), float(trans_line[1]), float(trans_line[2])]);
+    # Tfis.close();
+    # Hs_inv = Rs_inv.copy();
+    # Hs_inv[:3, 3] = trans_inv[:3]
+    # Hs_inv = Ss_inv.dot(Hs_inv)
+    # 
+    # print "Scale:\n", Ss_inv
+    # print "R:\n", Rs_inv
+    # print "T:\n", trans_inv
+    # print "H:\n", Hs_inv
+    
+    #read source to target "Ground Truth" Transformation
+    print "************Hs**************"
     Tfile = src_scene_root + "/Hs.txt";
     Tfis = open(Tfile, 'r')
     lines=[];
     lines = Tfis.readlines();
     scale = float(lines[0])
+    Ss = tf.scale_matrix(scale);
     quat_line = lines[1].split(" ");
-    quat = np.array([float(quat_line[1]), float(quat_line[2]), float(quat_line[3]), float(quat_line[0])])
+    quat = tf.unit_vector(np.array([float(quat_line[3]), float(quat_line[0]), float(quat_line[1]), float(quat_line[2])]))
+    Hs = tf.quaternion_matrix(quat);
     trans_line = lines[2].split(" ");
-    trans = np.array([[float(trans_line[0]), float(trans_line[1]), float(trans_line[2])]])
-    trans = trans.reshape(3,1);
+    Ts = np.array([float(trans_line[0]), float(trans_line[1]), float(trans_line[2])]);
     Tfis.close();
-    Rs = tf.quaternion_matrix(quat)[0:3,0:3];
-
+    Rs = Hs.copy()[:3,:3];
+    Hs[:3, 3] = Ts[:3]
+    Hs=Ss.dot(Hs) 
+    
+    Rs = Rs;
+    Ts = Ts;
+  
+    
+    print "Scale:\n", Ss
+    print "R:\n", Rs
+    print "T:\n", Ts
+    print "H:\n", Hs
+    
+    
+    
     #read source to target "Initial Alignment" Transformation
+    print "************Hs IA**************"
     Tfile = src_features_dir + "/ia_transformation_" + str(percentile) + "_" + str(niter) + ".txt";    
     Tfis = open(Tfile, 'r')
-    Rs_ia=np.genfromtxt(Tfis, skip_header=1, skip_footer=1, usecols={0,1,2} );
-    Tfis.close()
-    Tfis = open(Tfile, 'r')
-    Ts_ia=np.genfromtxt(Tfis, skip_header=1, skip_footer=1, usecols={3} );
-    Ts_ia = Ts_ia.reshape(3,1);
+    Hs_ia = np.genfromtxt(Tfis, skip_header=1, usecols={0,1,2,3} );
     Tfis.close()
     Tfis = open(Tfile, 'r')
     Ss_ia=np.genfromtxt(Tfis, skip_footer=4, usecols={0} );
     Tfis.close()
-    Ts_ia = (1/Ss_ia) * Ts_ia;
-    Rs_ia =  (1/Ss_ia) * Rs_ia
+    Rs_ia = Hs_ia[:3,:3]*(1.0/Ss_ia)
+    Ts_ia = Hs_ia[:3,3]*(1.0/Ss_ia)
+    
+    print "R:\n", Rs_ia
+    print "T:\n", Ts_ia
+    print "H:\n", Hs_ia
+    
+    #Approximation of identinty transformation from initial alignmenet
+    # HHinv_ia = Hs_inv.dot(Hs_ia);
+    # RRinv_ia = HHinv_ia[:3, :3]
+    # TTinv_ia = HHinv_ia[:3, 3]
+    #Not really! -- The rotation error is given as the Forbenius Norm of ||H_error - I||_F
+    # R_error_ia = RRinv_ia - np.identity(3)
+    #   R_error_ia_norm = LA.norm(R_error_ia, 'fro')
+    #   T_error_ia_norm = scale_geo*LA.norm(R_error_ia.T.dot(TTinv_ia))
+    
+    quat_ia = tf.unit_vector(tf.quaternion_from_matrix(Rs_ia));
+    Rs_error_ia = Rs_ia - Rs;
+    Ts_error_ia = (Rs_ia.T).dot(Ts_ia) - (Rs.T).dot(Ts)
+    # Rs_error_ia_norm = scale_geo*scale*LA.norm(Rs_error_ia, 'fro') #Are there units for this norm? I don't think so, dow
+    Rs_error_ia_norm = math.acos(abs(np.dot(quat_ia, quat)));
+    Ts_error_ia_norm = scale_geo*scale*LA.norm(Ts_error_ia)
+    
+    print "Error (R,T) ", Rs_error_ia_norm, ",", Ts_error_ia_norm
         
-    geo_scale_M = np.diag([geo_scale, geo_scale, geo_scale])
-    ia_scale_M = np.diag([Ss_ia, Ss_ia, Ss_ia])
+    #read source to target "Initial Alignment" Transformation
+    print "************Hs ICP**************"
+    Tfile = src_features_dir + "/icp_transformation_" + str(percentile) + "_" + str(niter) + ".txt";    
+    Tfis = open(Tfile, 'r')
+    Hs_icp = np.genfromtxt(Tfis, usecols={0,1,2,3});
+    Tfis.close()
     
-    Rs_geo = tf.quaternion_matrix(geo_quat)[0:3,0:3]
+    Hs_icp = Hs_icp.dot(Hs_ia)
+    Rs_icp = Hs_icp[:3,:3]*(1.0/Ss_ia)
+    Ts_icp = Hs_icp[:3,3]*(1.0/Ss_ia)
     
-    Rs_ia_geo = geo_scale_M.dot(Rs_geo.dot(ia_scale_M.dot(Rs_ia)));
-    Ts_ia_geo = geo_scale_M.dot(Rs_geo.dot(ia_scale_M.dot(Ts_ia))) + geo_scale_M.dot(geo_trans);
+    print "R:\n", Rs_icp
+    print "T:\n", Ts_icp
+    print "H:\n", Hs_icp
+
+    # #Approximation of identinty transformation from initial alignmenet+ICP
+    # HHinv_icp = Hs_inv.dot(Hs_icp.dot(Hs_ia));
+    # RRinv_icp = HHinv_icp[:3, :3]
+    # TTinv_icp = HHinv_icp[:3, 3]
+    # 
+    # 
+    # #The rotation error is given as the Forbenius Norm of ||H_error - I||_F
+    # R_error_icp = RRinv_icp - np.identity(3)
+    # R_error_icp_norm = LA.norm(R_error_icp, 'fro')
+    # T_error_icp_norm = scale_geo*LA.norm(R_error_icp.T.dot(TTinv_icp))
     
-    scale_M = np.diag([scale, scale, scale])
-    Rs_geo_true = geo_scale_M.dot(Rs_geo.dot(scale_M.dot(Rs)));
-    Ts_geo_true = geo_scale_M.dot(Rs_geo.dot(scale_M.dot(trans))) + geo_scale_M.dot(geo_trans);
+    
+    quat_icp = tf.unit_vector(tf.quaternion_from_matrix(Rs_icp));
+    Rs_error_icp = Rs_icp - Rs;
+    Ts_error_icp = (Rs_icp.T).dot(Ts_icp) - (Rs.T).dot(Ts)
+    # Rs_error_icp_norm = scale_geo*scale*LA.norm(Rs_error_icp, 'fro') #Are there units for this norm? I don't think so, dow
+    Rs_error_icp_norm = math.acos(abs(np.dot(quat_icp, quat)));
+    Ts_error_icp_norm = scale_geo*scale*LA.norm(Ts_error_icp)
+
+    print "Error (R,T) ", Rs_error_icp_norm, ",", Ts_error_icp_norm
+    
+    IA_error = np.array([Rs_error_ia_norm, Ts_error_ia_norm]);
+    ICP_error = np.array([Rs_error_icp_norm, Ts_error_icp_norm])
+    
     
     import code; code.interact(local=locals())
     
+    
+    
+    return IA_error, ICP_error
 
-  #  print "IA:" , Hs_ica
-
-  #   Tfile = src_features_dir + "/icp_transformation_" + str(percentile) + ".txt";
-  #   Tfis = open(Tfile, 'r')
-  #   Hs_icp=np.genfromtxt(Tfis, skip_footer=1, usecols={0,1,2} );
-  #   Tfis.close()
-  #   Tfis = open(Tfile, 'r')
-  #   Ts_icp=np.genfromtxt(Tfis, skip_footer=1, usecols={3} );
-  #   Ts_icp = Ts_icp.reshape(3,1);
-  #   Tfis.close()
-  # #  print "ICP:" , Hs_icp
-  # 
-  # #  scale_inv = Ss_ica;
-  # #  Rs_inv = Hs_icp.dot(Hs_ica); print "ICP"
-  # #  Ts_inv = Ts_ia + Ts_icp;
-  # 
-  #   scale_inv = Ss_ica;
-  #   Rs_inv = (Rs_ia); print "IC"
-  #   Ts_inv = Ts_ia;
-  # 
-  #   error_s = scale*scale_inv
-  #   error_R = (error_s*(Rs_inv.dot(Rs)) - np.eye(3));
-  #   error_T = error_s*(Rs_inv.dot(Ts)) + scale_inv*Ts_inv;
 
 def main(argv=None):
     args = process_command_line(argv)
-    compute_error(0, args.descriptor, 500, 99)
+    IA_error_mean= np.zeros((4, 2));
+    IA_error_min= np.zeros((4, 2))
+    IA_error_max= np.zeros((4, 2))
+    IA_error_median= np.zeros((4, 2))
+    
+    ICP_error_mean= np.zeros((4, 2));
+    ICP_error_min= np.zeros((4, 2))
+    ICP_error_max= np.zeros((4, 2))
+    ICP_error_median= np.zeros((4, 2))
+    
+    niter = [50,100,200,500]
+    
+    # for iter_idx in len():
+    iter_idx=0;     
+    IA_error = np.zeros((10, 2));
+    ICP_error = np.zeros((10, 2));
+
+    for trial in range(0,9):
+      IA_error[trial,:], ICP_error[trial,:] = compute_error(0, args.descriptor, niter[0], 99)
+      import code; code.interact(local=locals())
+      
+      # IA_error_mean[iter_idx, :] =   
+    
     return 0
 
 def setlogging(logfile=None):
