@@ -133,24 +133,24 @@ for i in frames:
     boxm2_batch.run_process(); 
  
     
-	print("Render");
-	boxm2_batch.init_process("boxm2OclRenderExpectedImageProcess");
-	boxm2_batch.set_input_from_db(0,device);
-	boxm2_batch.set_input_from_db(1,scene);
-	boxm2_batch.set_input_from_db(2,openclcache);
-	boxm2_batch.set_input_from_db(3,cam);
-	boxm2_batch.set_input_unsigned(4,NI);
-	boxm2_batch.set_input_unsigned(5,NJ);
-	boxm2_batch.run_process();
-	(id,type) = boxm2_batch.commit_output(0);
-	exp_img = dbvalue(id,type);
+    print("Render");
+    boxm2_batch.init_process("boxm2OclRenderExpectedImageProcess");
+    boxm2_batch.set_input_from_db(0,device);
+    boxm2_batch.set_input_from_db(1,scene);
+    boxm2_batch.set_input_from_db(2,openclcache);
+    boxm2_batch.set_input_from_db(3,cam);
+    boxm2_batch.set_input_unsigned(4,NI);
+    boxm2_batch.set_input_unsigned(5,NJ);
+    boxm2_batch.run_process();
+    (id,type) = boxm2_batch.commit_output(0);
+    exp_img = dbvalue(id,type);
 
-	boxm2_batch.init_process("vilSaveImageViewProcess");
-	boxm2_batch.set_input_from_db(0,exp_img);
-	boxm2_batch.set_input_string(1,exp_fname);
-	boxm2_batch.run_process();
-	
-	boxm2_batch.remove_data(exp_img.id)	
+    boxm2_batch.init_process("vilSaveImageViewProcess");
+    boxm2_batch.set_input_from_db(0,exp_img);
+    boxm2_batch.set_input_string(1,exp_fname);
+    boxm2_batch.run_process();
+
+    boxm2_batch.remove_data(exp_img.id)	
 
 
     boxm2_batch.remove_data(img.id)

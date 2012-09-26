@@ -27,7 +27,7 @@ def reconstruction_error(weights):
 weights_10_file = "/Users/isa/Experiments/PCA/DowntownBOXM_3_3_1/10/weights.txt";
 
 
-def read_weights(weights_file)
+def read_weights(weights_file):
     f = open(weights_file, 'r');
     
     w =[];

@@ -10,11 +10,10 @@ import sys
 import glob
 import time
 import argparse
-
 import vpcl_adaptor as vpcl
 from boxm2_utils import *
 
-def compute_omp_descriptors(scene_root, descriptor_type, radius, njobs, percentile, verbose=True):
+def compute_omp_descriptors(scene_root, descriptor_type, basename_in, radius, njobs, percentile, verbose=True):
   #figure out the resolution from the scene _info.xml
   resolution = parse_scene_resolution(scene_root + "/scene_info.xml");
   print "Resolution for site is : " + str(resolution);
@@ -28,7 +27,7 @@ def compute_omp_descriptors(scene_root, descriptor_type, radius, njobs, percenti
   if not verbose:
     vpcl_batch.set_stdout("./logs/log_" + descriptor_type + 'percetile' + str(percentile) +'.log')
 
-  file_in =  scene_root + "/" + opts.basename_in + "_" + str(percentile) + ".ply"
+  file_in =  scene_root + "/" + basename_in + "_" + str(percentile) + ".ply"
   file_out = features_dir + "/descriptors_" + str(percentile) + ".pcd";
 
   if verbose :
@@ -47,8 +46,8 @@ def compute_omp_descriptors(scene_root, descriptor_type, radius, njobs, percenti
 
 if __name__ == "__main__":
    parser = argparse.ArgumentParser()
-   parser.add_option("-s", "--sceneroot", action="store", type="string", dest="sceneroot", help="root folder, this is where the .ply input and output files should reside")
-   parser.add_argument("--basenameIn",       action="store", type=str,   dest="basename_in",  default="",      help="basename of .ply file")
+   parser.add_argument("-s", "--sceneroot",  action="store", type=str,   dest="sceneroot", help="root folder, where the .ply input and output files reside")
+   parser.add_argument("--basenameIn",       action="store", type=str,   dest="basename",  default="",      help="basename of .ply file")
    parser.add_argument("-r", "--radius",     action="store", type=int,   dest="radius",       default=30,      help="radius (multiple of resolution)");
    parser.add_argument("-p", "--percent",    action="store", type=int,   dest="percentile",   default=99,      help="data percentile");
    parser.add_argument("-d", "--descriptor", action="store", type=str,   dest="descriptor",   default="FPFH",      help="name of the descriptor i.e FPFH");
@@ -62,7 +61,8 @@ if __name__ == "__main__":
    radius = args.radius; #gets multiplied by the resolution of the scene
    percentile = args.percentile;
    descriptor_type = args.descriptor;
+   basename = args.basename
    njobs=args.njobs;
    verbose=args.verbose;
 
-   compute_omp_descriptors(scene_root, descriptor_type, radius, njobs, percentile, verbose=True)
+   compute_omp_descriptors(scene_root, descriptor_type, basename, radius, njobs, percentile, verbose=True)

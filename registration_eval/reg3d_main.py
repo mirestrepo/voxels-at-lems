@@ -26,14 +26,6 @@ sys.path.append(VPCL_MODULE_LIB);
 sys.path.append(VOXELS_AT_LEMS_BOXM2);
 sys.path.append(VOXELS_AT_LEMS_VPCL);
 
-#   #*******************************************************************************************************
-#   #Compute Descriptors
-#   #*******************************************************************************************************
-#   if (compute_descriptor):
-#     njobs=8;
-#     vpcl_compute_omp_descriptors.main() -s root_dir --basenameIn "gauss_233_normals_pvn" -r radius -p percentile -d descriptor -j njobs -v true
-# 
-# 
 #*******************************************************************************************************
 #Compute Rigid Transformation
 #*******************************************************************************************************
