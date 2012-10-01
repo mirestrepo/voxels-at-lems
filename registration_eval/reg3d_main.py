@@ -83,7 +83,7 @@ def register_ia(root_dir, descriptor_type, radius = 30, percentile = 99, nr_iter
   py_vpcl.clear();
   print "Done with SAC_IA";
   
-def register_icp(root_dir, descriptor_type, radius = 30, percentile = 99, nr_iterations=200, rej_normals=False, verbose = True):
+def register_icp(root_dir, descriptor_type, radius = 30, percentile = 99, nr_iterations=200, rej_normals=False, verbose = True, use_max_nr_iter=False):
   
   #path to where all scenes are
   src_scene_root=root_dir;
@@ -113,6 +113,10 @@ def register_icp(root_dir, descriptor_type, radius = 30, percentile = 99, nr_ite
   max_dist = 4*min_sample_distance;
   translation_threshold = 0.1 * tgt_scene_res
   rotation_threshold = 0.1; #1 degree
+  
+  #set this flag to let ICP run for 500 - nr_iterations is used for naming conventions, but ignored here
+  if use_max_nr_iter:
+    nr_iterations = 500
 
   vpcl_adaptor.register_icp( srcFname     = src_fname,
                              tgtFname     = tgt_fname,
@@ -183,7 +187,7 @@ if __name__ == "__main__":
 
   if args.reg_icp:
    print "Running ICP"
-   register_icp(root_dir, descriptor_type, radius, percentile, args.n_iter, args.rej_normals, verbose)
+   register_icp(root_dir, descriptor_type, radius, percentile, args.n_iter, args.rej_normals, verbose, True)
 
   if args.vis_ia:
    print "Visualizing  IA"
