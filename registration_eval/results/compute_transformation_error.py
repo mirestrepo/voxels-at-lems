@@ -248,7 +248,7 @@ def main(argv=None):
      
      
     if (plot_errors):  
-      axT.set_xlabel('Number of RANSAC Iterations',fontsize= 20);
+      axT.set_xlabel('Number of RANSAC_FA Iterations',fontsize= 20);
       axT.set_ylabel('Error (meters)',fontsize= 20);  
       #classes= ['Plane', 'House', 'Building', 'Car', 'Parking Lot'];
       axT.set_xlim((0,505) );
@@ -261,7 +261,7 @@ def main(argv=None):
       figT.savefig("/Users/isa/Experiments/reg3d_eval/downtown_dan/T_error.eps", transparent=True, pad_inches=5)
       
 
-      axR.set_xlabel('Number of RANSAC Iterations',fontsize= 20);
+      axR.set_xlabel('Number of RANSAC_FA Iterations',fontsize= 20);
       axR.set_ylabel('Error (degrees)',fontsize= 20);  
       #classes= ['Plane', 'House', 'Building', 'Car', 'Parking Lot'];
       axR.set_xlim((0,505) );
