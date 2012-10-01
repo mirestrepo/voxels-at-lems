@@ -1,14 +1,14 @@
 #!/bin/bash
 
-for iter in 20; do
+for iter in 20 50 75 100 200 500; do
   
   n_iter_ia=$iter;
   n_iter_icp=$iter;
 
-  for t in 0 1 2 3 4 5 6 7 8 9; do
-    ./reg3d_main.py --trial $t --reg_ia true --descriptor "FPFH" --n_iter $n_iter_ia &
-  done
-  wait
+  # for t in 0 1 2 3 4 5 6 7 8 9; do
+  #   ./reg3d_main.py --trial $t --reg_ia true --descriptor "FPFH" --n_iter $n_iter_ia &
+  # done
+  # wait
 
   for t in 0 1 2 3 4 5 6 7 8 9; do
     ./reg3d_main.py --trial $t --reg_icp true --descriptor "FPFH" --n_iter $n_iter_icp &
@@ -19,10 +19,10 @@ for iter in 20; do
   done
   wait
 
-  for t in 0 1 2 3 4 5 6 7 8 9; do
-    ./reg3d_main.py --trial $t --reg_ia true --descriptor "SHOT" --n_iter $n_iter_ia &
-  done
-  wait
+  # for t in 0 1 2 3 4 5 6 7 8 9; do
+  #   ./reg3d_main.py --trial $t --reg_ia true --descriptor "SHOT" --n_iter $n_iter_ia &
+  # done
+  # wait
 
   for t in 0 1 2 3 4 5 6 7 8 9; do
     ./reg3d_main.py --trial $t --reg_icp true --descriptor "SHOT" --n_iter $n_iter_icp &
@@ -34,3 +34,5 @@ for iter in 20; do
   wait
   
 done
+
+# python ./compute_transformation_error.py --log "/Users/isa/Experiments/reg3d_eval/downtown_dan/plot_RT.log"
