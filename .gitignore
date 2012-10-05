@@ -6,3 +6,7 @@ bmvc12/logs/*
 *.ply
 *.log
 PYSMELLTAGS
+
+voxels-at_lems.sublime-project
+
+voxels-at_lems.sublime-workspace
