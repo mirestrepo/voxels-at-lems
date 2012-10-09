@@ -21,7 +21,7 @@ def compute_error(trial):
   #  root_dir="/data/reg3d_eval/downtown_dan/pert_01_$trial_number"
   src_scene_root = "/data/reg3d_eval/downtown_dan/pert_005_" +str(trial);
   src_features_dir = "/data/reg3d_eval/downtown_dan/pert_005_" +str(trial)+ "/FPFH_30"
-  
+
   percentile = 99;
 
   #read source to target "Ground Truth" Transformation
@@ -77,7 +77,7 @@ def compute_error(trial):
 
 #  Hs_inv = Hs_icp.dot(Hs_ica); print "ICP"
   Hs_inv  = Hs_ica; print "IA"
-#  print Hs_inv 
+#  print Hs_inv
 #  print LA.inv(Hs)
 
 
@@ -117,7 +117,7 @@ def compute_error(trial):
   CE_y = np.max(abs(weight_y_proj));
 
   print LE, CE_x, CE_y
-  
+
   return COV_hat
 
 
@@ -127,13 +127,15 @@ if __name__ == "__main__":
   for t in range(0,3):
     print "trial:" + str(t)
     COV_inv = COV_inv + LA.inv(compute_error(t));
-    
+
   COV_combined = LA.inv(COV_inv);
-  
+
   ##Compute Circular Error and Elevetion Error
   w, v = LA.eig(COV_combined);
   axes = np.zeros((3,1))
-  error_90 = 2*np.sqrt(w)*2.5 #to find 90% confidence ellipsoid, scale the eigenvalues, see pg. 416 on Intro To Modern Photogrammetry, Mikhail, et. al.
+  error_90 = 2*np.sqrt(w)*2.5
+
+  #to find 90% confidence ellipsoid, scale the eigenvalues, see pg. 416 on Intro To Modern Photogrammetry, Mikhail, et. al.
 
 
   #now find LE (vertical error) by projecting onto z-axis

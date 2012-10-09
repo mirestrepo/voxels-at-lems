@@ -12,6 +12,8 @@ CONFIGURATION= "Release";
 
 VPCL_EXE_PATH="/Projects/vpcl/bin_make/" + CONFIGURATION + "/bin"
 
+PCLVIEW_EXE_PATH="/Projects/pcl_dev/pcl/trunk/" + CONFIGURATION + "/bin/pcl_viewer.app/Contents/MacOS"
+
 VXL_MODULE="/Projects/vxl/bin/" + CONFIGURATION + "/lib";
 VXL_MODULE_LIB="/Projects/vxl/src/contrib/brl/bseg/boxm2/pyscripts";
 VPCL_MODULE= "/Projects/vpcl/bin_make/" + CONFIGURATION+ "/lib";
@@ -134,23 +136,37 @@ def register_icp(root_dir, descriptor_type, radius = 30, percentile = 99, nr_ite
   print "Done with ICP"
 
 
-def visualize_reg_ia(descriptor, radius = 30, percentile = 99, nr_iterations=200):
-  tgtRoot="/Users/isa/Experiments/reg3d_eval/downtown_dan/original"
-  tgt_cloud=tgtRoot + "/gauss_233_normals_pvn_" + str(percentile) + ".ply"
-  src_cloud=root_dir + "/" + descriptor + "_" + str(radius) + "/ia_cloud_" + str(percentile) + "_" + str(nr_iterations) + ".pcd"
+def visualize_reg_ia(descriptor, radius = 30, percentile = 99, nr_iterations=200, geo=False):
+  
+  if geo:
+    tgtRoot="/Users/isa/Experiments/reg3d_eval/downtown_dan/original"
+    tgt_cloud= tgtRoot+ "/gauss_233_normals_pvn_" +str(percentile) + "_XYZ_geo.pcd"
+    src_cloud=root_dir + "/" + descriptor + "_" + str(radius) + "/ia_cloud_" + str(percentile) + "_" + str(nr_iterations) + "_geo.pcd"
+  else:
+    tgtRoot="/Users/isa/Experiments/reg3d_eval/downtown_dan/original"
+    tgt_cloud=tgtRoot + "/gauss_233_normals_pvn_" + str(percentile) + ".ply"
+    src_cloud=root_dir + "/" + descriptor + "_" + str(radius) + "/ia_cloud_" + str(percentile) + "_" + str(nr_iterations) + ".pcd"
+  
   exe = VPCL_EXE_PATH + "/visualize"
   subprocess.call([exe , src_cloud, tgt_cloud])
 
-def visualize_reg_icp(descriptor, radius = 30, percentile = 99, nr_iterations=200, rej_normals = False):
-  tgtRoot="/Users/isa/Experiments/reg3d_eval/downtown_dan/original"
-  tgt_cloud= tgtRoot+ "/gauss_233_normals_pvn_" +str(percentile) + ".ply"
-  if rej_normals:
-    src_cloud=root_dir + "/" + descriptor + "_" + str(radius) + "/icp_cloud_" + str(percentile) + "_" + str(nr_iterations) + "_n.pcd"
-  else:
-    src_cloud=root_dir + "/" + descriptor + "_" + str(radius) + "/icp_cloud_" + str(percentile) + "_" + str(nr_iterations) + ".pcd"
-  exe = VPCL_EXE_PATH + "/visualize"
+def visualize_reg_icp(descriptor, radius = 30, percentile = 99, nr_iterations=200, rej_normals = False, geo=False, trial=-1):
+  
+  if geo:
+    tgtRoot="/Users/isa/Experiments/reg3d_eval/downtown_dan/original"
+    tgt_cloud= tgtRoot+ "/gauss_233_normals_pvn_99_XYZ.pcd"
+    src_cloud=root_dir + "/" + descriptor + "_" + str(radius) + "/icp_cloud_" + str(percentile) + "_" + str(nr_iterations) + "_geo.pcd"
+  else:   
+    tgtRoot="/Users/isa/Experiments/reg3d_eval/downtown_dan/original"
+    tgt_cloud= tgtRoot+ "/gauss_233_normals_pvn_" +str(percentile) + ".ply"
+    if rej_normals:
+      src_cloud=root_dir + "/" + descriptor + "_" + str(radius) + "/icp_cloud_" + str(percentile) + "_" + str(nr_iterations) + "_n.pcd"
+    else:
+      src_cloud=root_dir + "/" + descriptor + "_" + str(radius) + "/icp_cloud_" + str(percentile) + "_" + str(nr_iterations) + ".pcd"
+  exe = PCLVIEW_EXE_PATH + "/pcl_viewer"
   subprocess.call([exe , src_cloud, tgt_cloud])
   
+      
 if __name__ == "__main__":
   
   # import vpcl_compute_omp_descriptors;
@@ -168,6 +184,7 @@ if __name__ == "__main__":
   parser.add_argument("--rej_normals",    action="store",   type=bool,    dest="rej_normals", default=False,  help="Reject normals?");
   parser.add_argument("--verbose",        action="store",   type=bool,    dest="verbose",     default=False,  help="Print or redirect to log file");
   parser.add_argument("--n_iter",         action="store",   type=int,     dest="n_iter",      default=200,    help="Number of iterations");
+  parser.add_argument("--geo",            action="store",   type=bool,    dest="geo",         default=False,  help="Use reoregistered clouds?");
   
   
   args = parser.parse_args()
@@ -191,10 +208,10 @@ if __name__ == "__main__":
 
   if args.vis_ia:
    print "Visualizing  IA"
-   visualize_reg_ia(descriptor_type, radius, percentile, args.n_iter)
+   visualize_reg_ia(descriptor_type, radius, percentile, args.n_iter, args.geo)
 
   if args.vis_icp:
    print "Visualizing  ICP"
-   visualize_reg_icp(descriptor_type, radius, percentile, args.n_iter, args.rej_normals)
+   visualize_reg_icp(descriptor_type, radius, percentile, args.n_iter, args.rej_normals, args.geo, trial_number)
      
  

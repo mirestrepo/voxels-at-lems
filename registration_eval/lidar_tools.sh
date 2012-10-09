@@ -28,5 +28,6 @@
 
 ##**7. Save Correspondances as bwm_correspondences 
 
-##**7. Find transformation and transfom a point cloud using correspondances
-/Projects/vxl/bin/Release/contrib/brl/bbas/bwm/exe/bwm_3d_site_transform_points -corrs /data/lidar_providence/downtown_offset-1-financial-corrs.txt -input_path /Users/isa/Experiments/reg3d_eval/downtown_dan/original/gauss_233_normals_pvn_99.ply -output_path /Users/isa/Experiments/reg3d_eval/downtown_dan/original/gauss_233_normals_pvn_99_XYZ_geo.ply
+##**8. Find transformation and transfom a point cloud using correspondances
+/Projects/vxl/bin/Release/contrib/brl/bbas/bwm/exe/bwm_3d_site_transform_points -corrs /data/lidar_providence/downtown_offset-1-financial-dan-corrs.txt -input_path /Users/isa/Experiments/reg3d_eval/downtown_dan/original/gauss_233_normals_pvn_99.ply -output_path /Users/isa/Experiments/reg3d_eval/downtown_dan/original/gauss_233_normals_pvn_99_XYZ_geo.ply -pts0_path /data/lidar_providence/downtown_offset-1-financial-dan-pts0.ply -pts1_path /data/lidar_providence/downtown_offset-1-financial-dan-pts1.ply
+
