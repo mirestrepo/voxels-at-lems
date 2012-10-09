@@ -207,8 +207,9 @@ def compute_geo_accuracy(fid_path, original_corrs_path,
         Hs_icp_error = REG_Tform.Hs_icp.dot(GT_Tform.Hs)
 
         # transform the points with the residual transformations
-        ia_corrs_hom = np.dot(Hs_ia_error,original_corrs_hom)
-        icp_corrs_hom = Hs_icp_error.dot(original_corrs_hom)
+        ia_corrs_hom = Hs_ia_error.dot(original_corrs_hom)
+        icp_corrs_ho
+        m = Hs_icp_error.dot(original_corrs_hom)
         # geo-register
         # geo_ia_corrs_hom = GEO.transform_points(ia_corrs_hom)
         # geo_icp_corrs_hom = GEO.transform_points(icp_corrs_hom)
