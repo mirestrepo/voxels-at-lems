@@ -138,14 +138,13 @@ def compute_geo_accuracy(fid_path, original_corrs_path,
 
     #Load fiducial .ply
     fid = open(fid_path, 'r')
-    fid_points = np.genfromtxt(fid, dtype=float, delimiter=' ',
+    fid_points = np.genfromtxt(fid, delimiter=' ',
                                 skip_header=9)
     fid.close()
 
     #Load original corrs .ply
     fid = open(original_corrs_path, 'r')
-    original_corrs = np.genfromtxt(fid, dtype=float,
-                                    delimiter=' ', skip_header=9)
+    original_corrs = np.genfromtxt(fid, delimiter=' ', skip_header=9)
     fid.close()
 
     #load the geo tranformation
@@ -178,6 +177,12 @@ def compute_geo_accuracy(fid_path, original_corrs_path,
     delta_z_icp = np.zeros([ntrials, npoints])
     delta_r_icp = np.zeros([ntrials, npoints])
 
+    #calculate radius
+    origin_mat = np.zeros(original_corrs_hom.shape)
+    origin_mat[range(0, 4), :] = np.array([0,0,0, 1]).reshape(4, 1)
+    radius = np.sum(original_corrs**2, axis= 1)**(1./2)
+    indeces = radius.argsort(axis=0)
+
     for trial in range(0, ntrials):
 
         print "********Trial", trial, "**********"
@@ -198,44 +203,37 @@ def compute_geo_accuracy(fid_path, original_corrs_path,
                      str(percentile) + "_" + str(niter) + ".txt")
 
         REG_Tform = reg3d_T.pcl_transformation(Tfile_ia, Tfile_icp)
-        Hs_ia_error = GT_Tform.Hs.dot(REG_Tform.Hs_ia)
-        Hs_icp_error = GT_Tform.Hs.dot(REG_Tform.Hs_icp)
+        Hs_ia_error = REG_Tform.Hs_ia.dot(GT_Tform.Hs)
+        Hs_icp_error = REG_Tform.Hs_icp.dot(GT_Tform.Hs)
 
         # transform the points with the residual transformations
-        ia_corrs_hom = Hs_ia_error.dot(original_corrs_hom)
+        ia_corrs_hom = np.dot(Hs_ia_error,original_corrs_hom)
         icp_corrs_hom = Hs_icp_error.dot(original_corrs_hom)
         # geo-register
-        geo_ia_corrs_hom = GEO.transform_points(ia_corrs_hom)
-        geo_icp_corrs_hom = GEO.transform_points(icp_corrs_hom)
+        # geo_ia_corrs_hom = GEO.transform_points(ia_corrs_hom)
+        # geo_icp_corrs_hom = GEO.transform_points(icp_corrs_hom)
         # distances
-        geo_ia_ref_diff = geo_ia_corrs_hom - fid_points_hom
-        geo_icp_ref_diff = geo_icp_corrs_hom - fid_points_hom
+        # geo_ia_ref_diff = geo_ia_corrs_hom - fid_points_hom
+        # geo_icp_ref_diff = geo_icp_corrs_hom - fid_points_hom
+        ia_ref_diff = ia_corrs_hom - original_corrs_hom
+        icp_ref_diff = icp_corrs_hom - original_corrs_hom
+
+        delta_z_ia[trial, :] = np.sqrt(ia_ref_diff[2, :] ** 2)
+        delta_r_ia[trial, :] = np.sqrt(ia_ref_diff[0, :] ** 2 +
+                                       ia_ref_diff[1, :] ** 2 +
+                                       ia_ref_diff[2, :] ** 2)
 
 
-        delta_z_ia[trial, :] = np.sqrt(geo_ia_ref_diff[2, :] *
-                                       geo_ia_ref_diff[2, :])
-        delta_r_ia[trial, :] = np.sqrt(geo_ia_ref_diff[0, :] *
-                                       geo_ia_ref_diff[0, :] +
-                                       geo_ia_ref_diff[1, :] *
-                                       geo_ia_ref_diff[1, :] +
-                                       geo_ia_ref_diff[2, :] *
-                                       geo_ia_ref_diff[2, :])
+        delta_z_icp[trial, :] = np.sqrt(icp_ref_diff[2, :] ** 2)
+        delta_r_icp[trial, :] = np.sqrt(icp_ref_diff[0, :] ** 2 +
+                                        icp_ref_diff[1, :] ** 2 +
+                                        icp_ref_diff[2, :] ** 2)
+
+        import pdb; pdb.set_trace()
 
 
-        delta_z_icp[trial, :] = np.sqrt(geo_icp_ref_diff[2, :] *
-                                        geo_icp_ref_diff[2, :])
-        delta_r_icp[trial, :] = np.sqrt(geo_icp_ref_diff[0, :] *
-                                        geo_icp_ref_diff[0, :] +
-                                        geo_icp_ref_diff[1, :] *
-                                        geo_icp_ref_diff[1, :] +
-                                        geo_icp_ref_diff[2, :] *
-                                        geo_icp_ref_diff[2, :])
 
-    #calculate radius
-    geo_origin_mat = np.zeros(fid_points_hom.shape)
-    geo_origin_mat[range(0, 4), :] = geo_origin[range(0, 4)].reshape(4, 1)
-    radius = np.sum(np.abs(fid_points_hom - geo_origin_mat)**2, axis= 0)**(1./2)
-    import pdb; pdb.set_trace()
+    # import pdb; pdb.set_trace()
 
     # radius = np.abs(fid_points_hom[2, :])
 
@@ -276,7 +274,7 @@ def main(argv=None):
         delta_z_icp.sort(axis=0)
         delta_r_icp.sort(axis=0)
 
-        CE_70_ia = delta_r_ia[int(0.7 * ntrials) - 1, :] - delta_r
+        CE_70_ia = delta_r_ia[int(0.7 * ntrials) - 1, :]
         CE_80_ia = delta_r_ia[int(0.8 * ntrials) - 1, :]
         CE_90_ia = delta_r_ia[int(0.9 * ntrials) - 1, :]
 
@@ -284,7 +282,7 @@ def main(argv=None):
         LE_80_ia = delta_z_ia[int(0.8 * ntrials) - 1, :] - delta_z
         LE_90_ia = delta_z_ia[int(0.9 * ntrials) - 1, :] - delta_z
 
-        CE_70_icp = delta_r_icp[int(0.7 * ntrials) - 1, :] - delta_r
+        CE_70_icp = delta_r_icp[int(0.7 * ntrials) - 1, :]
         CE_80_icp = delta_r_icp[int(0.8 * ntrials) - 1, :]
         CE_90_icp = delta_r_icp[int(0.9 * ntrials) - 1, :]
 
