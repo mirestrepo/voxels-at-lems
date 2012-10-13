@@ -4,7 +4,8 @@ Created on August 8, 2012
 
 @author:Isabel Restrepo
 
-A script that encapsulates all steps for evaluation of 3d-registration in the PVL
+A script that encapsulates all steps for building the scenes
+needed for registration experiments in the PVM
 """
 
 
@@ -20,7 +21,7 @@ export PYTHONPATH=/Projects/vxl/bin/$CONFIGURATION/lib:/Projects/vxl/src/contrib
 
 export PATH=$PATH:/Projects/voxels-at-lems-git/boxm2:/Projects/voxels-at-lems-git/vpcl
 
-echo $PATH 
+echo $PATH
 
 create_scene_from_xml=false;
 build_model=false;
@@ -30,40 +31,27 @@ export_scene=false;
 thresh_PLY=false;
 flip_normals=false;
 compute_descriptors=false;
-compute_transformation=false;
-register_ia=false;
-register_icp=false;
-visualize_reg=false;
 
-
-
-create_scene_from_xml=true;
+# create_scene_from_xml=true;
 build_model=true;
 render_circle=true;
-compute_normals=true;
-flip_normals=true;
-export_scene=true;
-thresh_PLY=true;
-compute_descriptors=true;
-#register_ia=true;
-#register_icp=true;
-#compute_transformation=true;
-# visualize_reg=true;
+# compute_normals=true;
+# flip_normals=true;
+# export_scene=true;
+# thresh_PLY=true;
+# compute_descriptors=true;
 
-#******************************************************************************************************* 
+#*******************************************************************************************************
 # Grab the inputs and set local variables
 #*******************************************************************************************************
 
 nargs=$#;
 
-if [ $nargs -eq 1 ]; then
-    trial_number=$1
+if [ $nargs -eq 2 ]; then
+    trial_basename=$1
+    trial_number=$2
     refine_chuncks=10
     refine_repeat=3
-elif [ $nargs -eq 3 ]; then
-    trial_number=$1
-    refine_chuncks=$2
-    refine_repeat=$3
 else
     trial_number=-1
     refine_chuncks=10
@@ -73,8 +61,7 @@ fi
 if [ $trial_number -eq -1 ]; then
    root_dir="/Users/isa/Experiments/reg3d_eval/downtown_dan/original"
 else
-    root_dir="/Users/isa/Experiments/reg3d_eval/downtown_dan/trial_$trial_number"
-  # root_dir="/data/reg3d_eval/downtown_dan/pert_01_$trial_number"
+    root_dir="/Users/isa/Experiments/reg3d_eval/downtown_dan/${trial_basename}_${trial_number}"
 fi
 
 echo "This is registration_eval/main.sh. Running with the following input arguments"
@@ -104,13 +91,13 @@ fi
 # Build the Scene
 #*******************************************************************************************************
 if $build_model; then
-    
+
     #To build the model we brake the image set in chucks because leaks on the GPU cache can corrupt the scene
     #We are specially conservative while we refine
-    #Train and refine 
+    #Train and refine
     CHUNKS=$refine_chuncks;
-    
-    
+
+
     failed=0;
     failed_r=0;
     failed_u=0;
@@ -119,17 +106,18 @@ if $build_model; then
         echo "Iteration = $i --Refine ON"
         for((chunk=0; chunk < CHUNKS; chunk++))
         do
-           boxm2_build_model.py -s $root_dir -x "$model_dirname/$scene_file" --imtype "$imtype" -g $device_name -v .06 --initFrame $chunk --skipFrame $CHUNKS --clearApp 1 -p "$root_dir/scene_refining_log.txt"
-           
+           log_file="$root_dir/scene_refining_log.txt"
+           boxm2_build_model.py -s $root_dir -x "$model_dirname/$scene_file" --imtype "$imtype" -g $device_name -v .06 --initFrame $chunk --skipFrame $CHUNKS --clearApp 1 -p $log_file
+
            status=${?}
-           if [ $status -eq 1 ]; then 
+           if [ $status -eq 1 ]; then
                 echo "status: $status"
                 failed=$(($failed+1))
                 failed_r=$(($failed_r+1))
                 echo "[Error] Something Failed. Refine ON. Iteration $i, Chunck $chunk. Num errors $failed"
                 #exit -1
            fi
-           if [ $status -eq 2 ]; then 
+           if [ $status -eq 2 ]; then
                 failed=$(($failed+1))
                 failed_u=$(($failed_u+1))
                 echo "[Error] Something Failed. Refine ON. Iteration $i, Chunck $chunk. Num errors $failed"
@@ -137,7 +125,7 @@ if $build_model; then
            fi
         done
     done
-    
+
     #Train without refining
     CHUNKS=3
     failed2=0;
@@ -148,17 +136,18 @@ if $build_model; then
         echo "Iteration = $i --Refine OFF"
         for((chunk=0; chunk < CHUNKS; chunk++))
         do
-           boxm2_build_model.py -s $root_dir -x "$model_dirname/$scene_file" --imtype "$imtype" -g $device_name -v .06 --refineoff 1 --initFrame $chunk --skipFrame $CHUNKS -p "$root_dir/scene_updating_log.txt"
-            
+          log_file="$root_dir/scene_updating_log.txt"
+           boxm2_build_model.py -s $root_dir -x "$model_dirname/$scene_file" --imtype "$imtype" -g $device_name -v .06 --refineoff 1 --initFrame $chunk --skipFrame $CHUNKS -p $log_file
+
             status=${?}
             echo "status: $status"
-            if [ $status -eq 1 ]; then 
+            if [ $status -eq 1 ]; then
                 failed2=$(($failed2+1))
                 failed_r2=$(($failed_r2+1))
                 echo "[Error] Something Failed. Refine OFF. Iteration $i, Chunck $chunk. Num errors $failed2"
                 #exit -1
             fi
-            if [ $status -eq 2 ]; then 
+            if [ $status -eq 2 ]; then
                 failed2=$(($failed2+1))
                 failed_u2=$(($failed_u2+1))
                 echo "[Error] Something Failed. Refine OFF. Iteration $i, Chunck $chunk. Num errors $failed2"
@@ -177,7 +166,7 @@ fi
 # Render Viewing Trajectory
 #*******************************************************************************************************
 if $render_circle; then
-    boxm2_render_circle.py -s $root_dir -x "$model_dirname/$scene_file" --imtype "$imtype" -g $device_name 
+    boxm2_render_circle.py -s $root_dir -x "$model_dirname/$scene_file" --imtype "$imtype" -g $device_name
 fi
 
 #*******************************************************************************************************
@@ -187,9 +176,10 @@ if $compute_normals; then
   T=$(date +%s);
   log_file="$root_dir/compute_normals_log.txt"
   boxm2_compute_normals.py -s $root_dir -x "$model_dirname/$scene_file" -g $device_name -p $log_file
+
   DIFF=$(( $(date +%s) - $T ))
   time_file=$root_dir/"compute_normals_run_time.txt";
-  echo "compute_normals.py took (in seconsd) \n $DIFF" > $time_file; 
+  echo "compute_normals.py took (in seconsd) \n $DIFF" > $time_file;
 fi
 
 if $flip_normals; then
@@ -202,10 +192,10 @@ if $flip_normals; then
     boxm2_flip_normals.py -s $root_dir -x "$model_dirname/$scene_file" -g $device_name --use_sum true -p $log_file
     status=${?}
     echo "Status: $status"
-    if [ $status -eq 0 ]; then 
+    if [ $status -eq 0 ]; then
       flipped=1;
       echo "Succeeded!"
-    fi      
+    fi
     attempt=$(($attempt+1));
     try=$(($((! $flipped)) && $(($attempt<3))));
   done
@@ -237,40 +227,40 @@ if $compute_descriptors; then
 fi
 
 #*******************************************************************************************************
-#Compute Rigid Transformation
+#Compute Rigid Transformation -- Moved to reg3d_main.py
 #*******************************************************************************************************
 
-if $compute_transformation; then
-  radius=30;
-  percentile=99
-  tgtRoot="/data/reg3d_eval/downtown_dan/original"
-  
-#  ./compute_rigid_transform.py --srcRoot $root_dir --tgtRoot $tgtRoot --basenameIn "gauss_233_normals_pvn" -r $radius -p $percentile -d "FPFH" -v true -exePath $VPCL_EXE_PATH
-  
-    ./register_svd.py --srcRoot $root_dir --tgtRoot $tgtRoot --basenameIn "gauss_233_normals_pvn" -r $radius -p $percentile -d "FPFH" -v true --exePath $VPCL_EXE_PATH
-fi
+# if $compute_transformation; then
+#   radius=30;
+#   percentile=99
+#   tgtRoot="/data/reg3d_eval/downtown_dan/original"
 
-if $register_ia; then
-  radius=30;
-  percentile=99
-  tgtRoot="/data/reg3d_eval/downtown_dan/original"
-  ./register_ia.py --srcRoot $root_dir --tgtRoot $tgtRoot --basenameIn "gauss_233_normals_pvn" -r $radius -p $percentile -d "FPFH"
-fi
+# #  ./compute_rigid_transform.py --srcRoot $root_dir --tgtRoot $tgtRoot --basenameIn "gauss_233_normals_pvn" -r $radius -p $percentile -d "FPFH" -v true -exePath $VPCL_EXE_PATH
 
-if $register_icp; then
-  radius=30;
-  percentile=99
-  tgtRoot="/data/reg3d_eval/downtown_dan/original"
-  ./register_icp.py --srcRoot $root_dir --tgtRoot $tgtRoot --basenameIn "gauss_233_normals_pvn" -r $radius -p $percentile -d "FPFH"
-fi
+#     ./register_svd.py --srcRoot $root_dir --tgtRoot $tgtRoot --basenameIn "gauss_233_normals_pvn" -r $radius -p $percentile -d "FPFH" -v true --exePath $VPCL_EXE_PATH
+# fi
 
-if $visualize_reg; then
-  radius=30;
-  percentile=99
-  tgtRoot="/data/reg3d_eval/downtown_dan/original"
-  tgt_cloud="$tgtRoot/gauss_233_normals_pvn_99.ply"
-  src_cloud="$root_dir/FPFH_30/ia_cloud_99.pcd"
-#  src_cloud="$root_dir/FPFH_30/icp_cloud_99.pcd"
+# if $register_ia; then
+#   radius=30;
+#   percentile=99
+#   tgtRoot="/data/reg3d_eval/downtown_dan/original"
+#   ./register_ia.py --srcRoot $root_dir --tgtRoot $tgtRoot --basenameIn "gauss_233_normals_pvn" -r $radius -p $percentile -d "FPFH"
+# fi
 
-  $VPCL_EXE_PATH/visualize $src_cloud $tgt_cloud
-fi
+# if $register_icp; then
+#   radius=30;
+#   percentile=99
+#   tgtRoot="/data/reg3d_eval/downtown_dan/original"
+#   ./register_icp.py --srcRoot $root_dir --tgtRoot $tgtRoot --basenameIn "gauss_233_normals_pvn" -r $radius -p $percentile -d "FPFH"
+# fi
+
+# if $visualize_reg; then
+#   radius=30;
+#   percentile=99
+#   tgtRoot="/data/reg3d_eval/downtown_dan/original"
+#   tgt_cloud="$tgtRoot/gauss_233_normals_pvn_99.ply"
+#   src_cloud="$root_dir/FPFH_30/ia_cloud_99.pcd"
+# #  src_cloud="$root_dir/FPFH_30/icp_cloud_99.pcd"
+
+#   $VPCL_EXE_PATH/visualize $src_cloud $tgt_cloud
+# fi
