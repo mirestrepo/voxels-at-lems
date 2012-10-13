@@ -1,12 +1,12 @@
 #!/usr/bin/env python
 # encoding: utf-8
-####################################################### 
+#######################################################
 # Author : Andrew Miller
 # Modifications: Isabel Restrepo
-####################################################### 
+#######################################################
 
-import random, os, sys;  
-from boxm2_scene_adaptor import *; 
+import random, os, sys;
+from boxm2_scene_adaptor import *;
 from vil_adaptor import *;
 from vpgl_adaptor import *;
 from bbas_adaptor import *;
@@ -15,10 +15,10 @@ from glob import glob
 from optparse import OptionParser
 
 
-####################################################### 
+#######################################################
 # handle inputs                                       #
 # scene is given as first arg, figure out paths       #
-####################################################### 
+#######################################################
 
 parser = OptionParser()
 parser.add_option("-s", "--sceneroot", action="store", type="string", dest="sceneroot", help="root folder for this scene")
@@ -39,7 +39,7 @@ print args
 
 # handle inputs
 #scene is given as first arg, figure out paths
-scene_root = options.sceneroot; 
+scene_root = options.sceneroot;
 
 # Set some update parameters
 SCENE_NAME = options.xml
@@ -53,15 +53,15 @@ CLEAR_APP=options.clearApp;
 if options.std_file != "":
    saveout = sys.stdout   # save initial state of stdout
    print saveout
-   print "STD_OUT is being redirected" 
+   print "STD_OUT is being redirected"
    set_stdout(options.std_file)
 
 
 
 
-####################################################### 
+#######################################################
 # Initialize a GPU
-####################################################### 
+#######################################################
 
 print "Initializing GPU"
 
@@ -70,11 +70,11 @@ scene_path = os.getcwd() + "/" + SCENE_NAME
 if not os.path.exists(scene_path):
   print "SCENE NOT FOUND! ", scene_path
   sys.exit(-1)
-scene = boxm2_scene_adaptor (scene_path, GPU);  
+scene = boxm2_scene_adaptor (scene_path, GPU);
 
-####################################################### 
+#######################################################
 # Get list of imgs and cams
-####################################################### 
+#######################################################
 
 train_imgs = os.getcwd() + "/imgs/*." + options.itype
 train_cams = os.getcwd() + "/cams_krt/*.txt"
@@ -89,41 +89,41 @@ if not os.path.isdir(os.getcwd() + "/cams_krt/"):
    sys.exit(-1)
 
 if not os.path.isdir(exp_imgs_dir +"/"):
-   os.mkdir(exp_imgs_dir + "/"); 
-  
+   os.mkdir(exp_imgs_dir + "/");
+
 imgs = glob(train_imgs)
 cams = glob(train_cams)
 imgs.sort()
-cams.sort() 
+cams.sort()
 if len(imgs) != len(cams) :
   print "CAMS NOT ONE TO ONE WITH IMAGES"
   print "CAMS: ", len(cams), "  IMGS: ", len(imgs)
   sys.exit();
 
-####################################################### 
+#######################################################
 # Clear appearance model
-####################################################### 
+#######################################################
 
 if(INIT_FRAME == (SKIP_FRAME - 1) and CLEAR_APP) :
-    print("Deleting Apperance....")   
-    move_appearance( os.getcwd() + "/model/"); 
+    print("Deleting Apperance....")
+    move_appearance( os.getcwd() + "/model/");
 
 
-####################################################### 
-# Update 
-####################################################### 
-frames = range(INIT_FRAME,len(imgs)-1, SKIP_FRAME); 
+#######################################################
+# Update
+#######################################################
+frames = range(INIT_FRAME,len(imgs)-1, SKIP_FRAME);
 print "Training with frames:"
 print frames;
 
-random.shuffle(frames); 
-for idx, i in enumerate(frames):   
-    
+random.shuffle(frames);
+for idx, i in enumerate(frames):
+
     print "Iteration ", idx, " of ", len(frames) , " on chunk " , INIT_FRAME
-    
+
     #load image and camera
-    pcam        = load_perspective_camera(cams[i]); 
-    img, ni, nj = load_image (imgs[i]); 
+    pcam        = load_perspective_camera(cams[i]);
+    img, ni, nj = load_image (imgs[i]);
     exp_fname= exp_imgs_dir + "/exp_img_%(#)05d.tiff"%{"#":i};
 
     if options.downSamp != 1.0:
@@ -133,29 +133,29 @@ for idx, i in enumerate(frames):
       remove_from_db([img, pcam])
       img = dimg
       pcam = dcam
-    
-    
+
+
     #render and expected image
     if idx%10==9:
       #save an expected image
       exp_image = render_grey(scene.scene, scene.active_cache, pcam, ni, nj, scene.device);
       save_image(exp_image, exp_fname)
       remove_from_db([exp_image])
-        
+
     #refine
     if idx%REFINE_INTERVAL==9 and REFINE_ON:
-      
+
       #if refining in the gpu, check for errors to not corruot the cache
       print "REFINING..."
       ncells = scene.refine();
       if(ncells < 0) :
         print "Refined Failed, clearing cache and exiting:"
         scene.clear_cache();
-        boxm2_batch.clear(); 
+        boxm2_batch.clear();
         sys.exit(1)
 
     #update scene
-    status = scene.update(pcam, img, True, None, "",  options.var); 
+    status = scene.update(pcam, img, True, None, "",  options.var);
     if(status == False) :
        print "Update Failed, clearing cache and exiting:"
        scene.clear_cache();
@@ -166,19 +166,19 @@ for idx, i in enumerate(frames):
     #clean up
     remove_from_db([img, pcam])
 
-####################################################### 
-#write and clear cache before exiting 
-####################################################### 
-print "WRITING CACHE..." 
-scene.write_cache(); 
-print "CLEANING CACHE..." 
+#######################################################
+#write and clear cache before exiting
+#######################################################
+print "WRITING CACHE..."
+scene.write_cache();
+print "CLEANING CACHE..."
 scene.clear_cache();
-print "CLEANING DB..." 
+print "CLEANING DB..."
 boxm2_batch.clear();
 
 if options.std_file != "":
    reset_stdout();
-   print "STD_OUT is being reset" 
+   print "STD_OUT is being reset"
 
 print "Done"
 
