@@ -2,13 +2,17 @@
 # encoding: utf-8
 """
 Author: Isabel Restrepo
-A script that encapsulates 3d-registration algorithms in the PVM
+A script that encapsulates all steps to evaluate
+3d-registration algorithms in the PVM under camera perturbation errors
 September 12, 2012
 """
-
 import os, sys, argparse
-import reg3d
 
+#set up enviroment
+CONFIGURATION= "Release";
+
+sys.path.append("/Projects/vxl/bin/" +CONFIGURATION +"/lib");
+sys.path.append("/Projects/vxl/src/contrib/brl/bseg/boxm2/pyscripts");
 
 if __name__ == "__main__":
 
@@ -17,12 +21,15 @@ if __name__ == "__main__":
         dest="root_dir",
         default="/Users/isa/Experiments/reg3d_eval/downtown_dan",
         help="Path to root directory")
-    parser.add_argument("--t_basename",     action="store",   type=str,
-        dest="t_basename",       default="trial",
-        help="Basename of trial directory e.g trial , trial_pert_005")
     parser.add_argument("--trial",          action="store",   type=int,
         dest="trial",       default=0,
         help="Trial number")
+    parser.add_argument("--si",          action="store",   type=int,
+        dest="si",       default=0,
+        help="Sigma index, where sigma = [0.05, 0.1, 0.15] ")
+    parser.add_argument("--perturb",         action="store",   type=bool,
+       dest="perturb",      default=False,
+       help="Run initial alignment")
     parser.add_argument("--reg_ia",         action="store",   type=bool,
        dest="reg_ia",      default=False,
        help="Run initial alignment")
@@ -60,42 +67,48 @@ if __name__ == "__main__":
 
     gt_root_dir = args.root_dir + "/original"
     trial_number = args.trial
-    trial_root_dir = args.root_dir + "/" + args.t_basename + "_" + str(trial_number)
+    sigma = [0.05, 0.1, 0.15]
+    sigma_str = ["005", "01", "015"]
+    trial_root_dir = args.root_dir + "/pert_" + sigma_str[args.si] + "_" + str(args.trial)
     descriptor_type = args.descriptor
     radius = 30
     percentile = 99
     verbose = args.verbose
 
+    if args.perturb:
+        import perturb_cameras
+        print "Peturbing cameras"
+        for si in range(0, len(sigma)):
+            for ti in range(0, 3):
+                root_in = gt_root_dir
+                root_out = args.root_dir + "/pert_" + sigma_str[si] + "_" + str(ti)
+                perturb_cameras.perturb_cams(root_in, root_out, sigma[si])
+
     if args.reg_ia:
+        import reg3d
         print "Running IA"
         reg3d.register_ia(gt_root_dir, trial_root_dir, descriptor_type,
             radius, percentile, args.n_iter, verbose)
 
     if args.reg_icp:
+        import reg3d
         print "Running ICP"
         reg3d.register_icp(gt_root_dir, trial_root_dir, descriptor_type,
             radius, percentile, args.n_iter, args.rej_normals,
             verbose, True)
 
     if args.vis_ia:
+        import reg3d
         print "Visualizing  IA"
         reg3d.visualize_reg_ia(gt_root_dir, trial_root_dir,
             descriptor_type, radius,
             percentile, args.n_iter, args.geo)
 
     if args.vis_icp:
+        import reg3d
         print "Visualizing  ICP"
         reg3d.visualize_reg_icp(gt_root_dir, trial_root_dir,
             descriptor_type, radius,
             percentile, args.n_iter, args.rej_normals, args.geo,
             trial_number)
-
-    if args.plot_Terror:
-        print "Saving Terror plots"
-        import compute_transformation_error as TE
-        TE.main()
-        import plot_ICP_iterations
-        plot_ICP_iterations.main()
-        import compute_trans_geo_accuracy as TE_GEO
-        TE_GEO.main()
 

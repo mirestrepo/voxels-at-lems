@@ -10,7 +10,6 @@ vxl or PCL. This file contains utilities to read them and use them
 to transform points
 """
 
-import numpy as np
 import transformations as tf
 
 
@@ -43,13 +42,8 @@ class gt_transformation(object):
         Tfis.close()
         self.Rs = self.Hs.copy()[:3, :3]
         self.Hs[:3, 3] = self.Ts[:3]
-        # import pdb; pdb.set_trace()
 
-        self.Hs[:3, 3] = np.zeros((3)); #to remove
-        # self.Hs = self.Ss.dot(self.Hs)  #to add again
-
-        self.Rs = self.Rs
-        self.Ts = self.Ts
+        self.Hs = self.Ss.dot(self.Hs)  #to add again
 
         print "Loaded Ground Truth Transformation: "
         print self.Hs
@@ -113,28 +107,27 @@ class pcl_transformation(object):
         Tfis = open(ia_Tfile, 'r')
         self.Hs_ia = np.genfromtxt(Tfis, skip_header=1, usecols={0, 1, 2, 3})
         Tfis.close()
-        # Tfis = open(ia_Tfile, 'r')
-        # self.Ss_ia = np.genfromtxt(Tfis, skip_footer=4, usecols={0})
-        # Tfis.close()
-        # self.Rs_ia = self.Hs_ia[:3, :3] * (1.0 / self.Ss_ia)
-        # self.Ts_ia = self.Hs_ia[:3, 3] * (1.0 / self.Ss_ia)
+        Tfis = open(ia_Tfile, 'r')
+        self.Ss_ia = np.genfromtxt(Tfis, skip_footer=4, usecols={0})
+        Tfis.close()
+        self.Rs_ia = self.Hs_ia[:3, :3] * (1.0 / self.Ss_ia)
+        self.Ts_ia = self.Hs_ia[:3, 3] * (1.0 / self.Ss_ia)
 
         #Load ICP transformation
         Tfis = open(icp_Tfile, 'r')
         self.Hs_icp = np.genfromtxt(Tfis, usecols={0, 1, 2, 3})
         Tfis.close()
-        # self.Hs_icp = self.Hs_icp.dot(self.Hs_ia)
-        # self.Rs_icp = self.Hs_icp[:3, :3] * (1.0 / self.Ss_ia)
-        # self.Ts_icp = self.Hs_icp[:3, 3] * (1.0 / self.Ss_ia)
+        self.Hs_icp = self.Hs_icp.dot(self.Hs_ia)
+        self.Rs_icp = self.Hs_icp[:3, :3] * (1.0 / self.Ss_ia)
+        self.Ts_icp = self.Hs_icp[:3, 3] * (1.0 / self.Ss_ia)
 
-        scale, shear, angles, trans, persp = tf.decompose_matrix(self.Hs_ia)
-        self.Rs_ia = tf.euler_matrix(*angles)
+        # scale, shear, angles, trans, persp = tf.decompose_matrix(self.Hs_ia)
+        # self.Rs_ia = tf.euler_matrix(*angles)
 
-        scale, shear, angles, trans, persp = tf.decompose_matrix(self.Hs_icp.dot(self.Hs_ia))
-        self.Hs_icp = tf.euler_matrix(*angles)
-        self.Hs_ia = self.Rs_ia
+        # scale, shear, angles, trans, persp = tf.decompose_matrix(self.Hs_icp.dot(self.Hs_ia))
+        # self.Rs_icp = tf.euler_matrix(*angles)
 
-        import pdb; pdb.set_trace()
+        # import pdb; pdb.set_trace()
 
 
         print "Loaded IA Transformation: "

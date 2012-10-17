@@ -25,6 +25,7 @@ parser.add_option("-s", "--sceneroot", action="store", type="string", dest="scen
 parser.add_option("-x", "--xmlfile", action="store", type="string", dest="xml", default="uscene.xml", help="scene.xml file name (model/uscene.xml, model_fixed/scene.xml, rscene.xml)")
 parser.add_option("-g", "--gpu",   action="store", type="string", dest="gpu",   default="gpu1", help="specify gpu (gpu0, gpu1, etc)")
 parser.add_option("-r", "--refineoff", action="store_true", dest="norefine", default=False, help="turn refine off")
+parser.add_option("--refineDevice",   action="store", type="string", dest="refine_device",   default="cpp", help="cpp, or gpu0, gpu1, etc")
 parser.add_option("-c", "--clearApp", action="store_true", dest="clearApp", default=False, help="clear appearance model")
 parser.add_option("-t", "--imtype", action="store", type="string", dest="itype", default="png", help="specify image type (tif, png, tiff, TIF)")
 parser.add_option("-v", "--variance", action="store", type="float", dest="var", default="-1.0", help="Specify fixed mog3 variance, otherwise learn it")
@@ -147,12 +148,17 @@ for idx, i in enumerate(frames):
 
       #if refining in the gpu, check for errors to not corruot the cache
       print "REFINING..."
-      ncells = scene.refine();
+      refine_threshold = 0.3
+      ncells = scene.refine(refine_threshold, options.refine_device);
       if(ncells < 0) :
         print "Refined Failed, clearing cache and exiting:"
         scene.clear_cache();
         boxm2_batch.clear();
         sys.exit(1)
+      #if succesfull refine, then clean up memory a bit
+      scene.write_cache();
+      scene.clear_cache();
+
 
     #update scene
     status = scene.update(pcam, img, True, None, "",  options.var);

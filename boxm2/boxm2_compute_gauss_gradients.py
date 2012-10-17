@@ -1,15 +1,15 @@
 # Author: Isabel Restrepo
 
-import random, os, sys, time;  
-from boxm2_scene_adaptor import *; 
+import random, os, sys, time;
+from boxm2_scene_adaptor import *;
 from boxm2_filtering_adaptor import *;
 from glob import glob
 from optparse import OptionParser
 
 
-####################################################### 
+#######################################################
 # handle inputs                                       #
-####################################################### 
+#######################################################
 parser = OptionParser()
 parser.add_option("-s", "--sceneroot", action="store", type="string", dest="sceneroot", help="root folder for this scene")
 parser.add_option("-x", "--xmlfile", action="store", type="string", dest="xml", default="uscene.xml", help="scene.xml file name (model/uscene.xml, model_fixed/scene.xml, rscene.xml)")
@@ -37,7 +37,7 @@ time.sleep(3)
 
 
 # handle inputs
-scene_root = opts.sceneroot; 
+scene_root = opts.sceneroot;
 
 # Set some update parameters
 SCENE_NAME = opts.xml
@@ -47,13 +47,13 @@ USE_SUM=opts.use_sum;
 if opts.std_file != "":
    saveout = sys.stdout   # save initial state of stdout
    print saveout
-   print "STD_OUT is being redirected" 
+   print "STD_OUT is being redirected"
    set_stdout(opts.std_file)
 
 
-####################################################### 
+#######################################################
 #Initialize a GPU
-####################################################### 
+#######################################################
 print "Initializing GPU"
 
 os.chdir(scene_root)
@@ -61,37 +61,40 @@ scene_path = os.getcwd() + "/" + SCENE_NAME
 if not os.path.exists(scene_path):
   print "Error: Scene not found! ", scene_path
   sys.exit(-1)
-scene = boxm2_scene_adaptor (scene_path, GPU);  
+scene = boxm2_scene_adaptor (scene_path, GPU);
 
 
-####################################################### 
+#######################################################
 #Compute Gradients
-####################################################### 
+#######################################################
 filters = create_kernel_vector("gauss_x", "XYZ", opts.dim_x, opts.dim_y, opts.dim_z, opts.supp_x, opts.supp_y, opts.supp_z);
 scene.kernel_vector_filter(filters);
-scene.write_cache(); 
+scene.write_cache();
 scene.interpolate_normals(filters);
-scene.write_cache(); 
+scene.write_cache();
 
-####################################################### 
+#######################################################
 #Export oriented point cloud
-####################################################### 
+#######################################################
 if opts.export_file != "":
   scene.extract_cell_centers();
   scene.flip_normals(USE_SUM);
-  scene.write_cache(); 
+  scene.write_cache();
   scene.export_points_and_normals(opts.export_file, True, opts.p_thresh, opts.vis_thresh, opts.nmag_thresh, "")
 
 
-####################################################### 
-#Clean Up  
-####################################################### 
+#######################################################
+#Clean Up
+#######################################################
+print "CLEANING CACHE..."
 scene.clear_cache();
+print "CLEANING DB..."
 boxm2_batch.clear();
+print "Done"
 
 if opts.std_file != "":
    reset_stdout();
-   print "STD_OUT is being reset" 
+   print "STD_OUT is being reset"
 
 print "Done"
 

@@ -48,7 +48,7 @@ use_probe=false;
 #render_interactive=true;
 #render_circle=true;
 #render_trajectory=true;
-#compute_gauss_gradients=true;
+# compute_gauss_gradients=true;
 compute_normals=true;
 # flip_normals=true;
 # export_scene=true;
@@ -62,10 +62,10 @@ compute_normals=true;
 #*******************************************************************************************************
 #Top directory containing frams_original
 #root_dir="/volumes/vision/video/helicopter_providence/3d_models_3_12/site_1";
-# root_dir="/data/helicopter_providence_3_12/site_12";
-root_dir="/data/hemenways"
+root_dir="/Users/isa/Experiments/reg3d_eval/downtown_dan/original";
+# root_dir="/data/hemenways"
 # directory where boxm2 scene is stored
-model_dirname="color_model";
+model_dirname="model";
 boxm2_dir=$root_dir/$model_dirname;
 
 

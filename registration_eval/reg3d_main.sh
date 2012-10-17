@@ -33,8 +33,8 @@ flip_normals=false;
 compute_descriptors=false;
 
 # create_scene_from_xml=true;
-build_model=true;
-render_circle=true;
+# build_model=true;
+# render_circle=true;
 # compute_normals=true;
 # flip_normals=true;
 # export_scene=true;
@@ -47,21 +47,33 @@ render_circle=true;
 
 nargs=$#;
 
-if [ $nargs -eq 2 ]; then
-    trial_basename=$1
-    trial_number=$2
-    refine_chuncks=10
-    refine_repeat=3
-else
+echo $nargs
+
+if [ $nargs -eq 6 ]
+then
+    root_basename=$1
+    trial_basename=$2
+    trial_number=$3
+    imtype=$4
+    refine_chuncks=$5  #10
+    refine_repeat=$6   #3
+elif [ $nargs -eq 4 ]
+then
+    root_basename=$1
+    imtype=$2
     trial_number=-1
-    refine_chuncks=10
-    refine_repeat=3
+    refine_chuncks=$3
+    refine_repeat=$4
+    echo "Here too"
+else
+    echo "Wrong number of arguments, exiting"
+    exit -1
 fi
 
 if [ $trial_number -eq -1 ]; then
-   root_dir="/Users/isa/Experiments/reg3d_eval/downtown_dan/original"
+   root_dir="/Users/isa/Experiments/reg3d_eval/${root_basename}/original"
 else
-    root_dir="/Users/isa/Experiments/reg3d_eval/downtown_dan/${trial_basename}_${trial_number}"
+   root_dir="/Users/isa/Experiments/reg3d_eval/${root_basename}/${trial_basename}_${trial_number}"
 fi
 
 echo "This is registration_eval/main.sh. Running with the following input arguments"
@@ -75,7 +87,6 @@ echo $refine_repeat
 model_dirname=model;
 boxm2_dir=$root_dir/$model_dirname;
 scene_file="scene.xml"
-imtype="tif"
 device_name="gpu1";
 
 #*******************************************************************************************************
@@ -106,7 +117,7 @@ if $build_model; then
         echo "Iteration = $i --Refine ON"
         for((chunk=0; chunk < CHUNKS; chunk++))
         do
-           log_file="$root_dir/scene_refining_log.txt"
+           log_file="$root_dir/scene_refining_log.log"
            boxm2_build_model.py -s $root_dir -x "$model_dirname/$scene_file" --imtype "$imtype" -g $device_name -v .06 --initFrame $chunk --skipFrame $CHUNKS --clearApp 1 -p $log_file
 
            status=${?}
@@ -127,16 +138,16 @@ if $build_model; then
     done
 
     #Train without refining
-    CHUNKS=3
+    CHUNKS=5
     failed2=0;
     failed_r2=0;
     failed_u2=0;
     for((i=0; i < 1; i++))
     do
         echo "Iteration = $i --Refine OFF"
-        for((chunk=0; chunk < CHUNKS; chunk++))
+        for((chunk=3; chunk < CHUNKS; chunk++))
         do
-          log_file="$root_dir/scene_updating_log.txt"
+          log_file="$root_dir/scene_updating_log.log"
            boxm2_build_model.py -s $root_dir -x "$model_dirname/$scene_file" --imtype "$imtype" -g $device_name -v .06 --refineoff 1 --initFrame $chunk --skipFrame $CHUNKS -p $log_file
 
             status=${?}
@@ -166,7 +177,7 @@ fi
 # Render Viewing Trajectory
 #*******************************************************************************************************
 if $render_circle; then
-    boxm2_render_circle.py -s $root_dir -x "$model_dirname/$scene_file" --imtype "$imtype" -g $device_name
+    boxm2_render_circle.py -s $root_dir -x "$model_dirname/$scene_file" --imtype "$imtype" -g $device_name --skipFrame 5
 fi
 
 #*******************************************************************************************************
@@ -174,7 +185,7 @@ fi
 #*******************************************************************************************************
 if $compute_normals; then
   T=$(date +%s);
-  log_file="$root_dir/compute_normals_log.txt"
+  log_file="$root_dir/compute_normals_log.log"
   boxm2_compute_normals.py -s $root_dir -x "$model_dirname/$scene_file" -g $device_name -p $log_file
 
   DIFF=$(( $(date +%s) - $T ))
@@ -188,7 +199,7 @@ if $flip_normals; then
   try=1;
   while [ $try -eq 1 ];
   do
-    log_file="$root_dir/flip_normals_log.txt"
+    log_file="$root_dir/flip_normals_log.log"
     boxm2_flip_normals.py -s $root_dir -x "$model_dirname/$scene_file" -g $device_name --use_sum true -p $log_file
     status=${?}
     echo "Status: $status"

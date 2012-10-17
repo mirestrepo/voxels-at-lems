@@ -22,50 +22,11 @@ import transformations as tf
 import math
 import matplotlib.pyplot as plt
 
-sys.path.append("/Projects/voxels-at-lems-git/registration_eval")
+sys.path.append(os.pardir)
 import reg3d_transformations as reg3d_T
 
 LOG = None
 
-
-def process_command_line(argv):
-
-    """
-    Return a 2-tuple: (settings object, args list).
-    `argv` is a list of arguments, or `None` for ``sys.argv[1:]``.
-    """
-    global LOG
-    if argv is None:
-        argv = sys.argv[1:]
-
-    # initialize the parser object:
-    parser = argparse.ArgumentParser(description="Export PLY to PCD file")
-
-    # define options here:
-    parser.add_argument("-v", "--verbose", action='store', type=bool,
-                         dest="verbose", default=True,
-                         help="Write debug log to log_file")
-    parser.add_argument("-L", "--log", dest="logfile",
-                         help="write debug log to log_file")
-
-    args = parser.parse_args(argv)
-
-    # set up logging
-    if args.verbose:
-        LOG = setlogging(args.logfile)
-
-    LOG.debug("debug message")
-    LOG.info("info message")
-    LOG.warn("warn message")
-    LOG.error("error message")
-    LOG.critical("critical message")
-
-    # if not args.input_file or not args.output_file :
-    #     pass
-    #     LOG.error("Input or Output filename not specified")
-    #     parser.error("You must supply an input file")
-
-    return args
 
 """Compute the accuracy between the LIDAR fiducial points
 and corresponding geo-register correspondances"""
@@ -132,10 +93,6 @@ def compute_geo_accuracy(fid_path, original_corrs_path,
                          geo_tform, trials_root, desc_name,
                          niter, ntrials, percentile=99):
 
-    # delta_z, delta_r = compute_ref_accuracy(fid_path,
-    #                                         original_corrs_path,
-    #                                         geo_tform)
-
     #Load fiducial .ply
     fid = open(fid_path, 'r')
     fid_points = np.genfromtxt(fid, delimiter=' ',
@@ -163,25 +120,16 @@ def compute_geo_accuracy(fid_path, original_corrs_path,
     original_corrs_hom = np.hstack((original_corrs, np.ones([npoints, 1]))).T
     geo_corrs_hom = GEO.transform_points(original_corrs_hom)
     geo_ref_diff = geo_corrs_hom - fid_points_hom
-    geo_origin = GEO.transform_points(np.array([-188.54816257, 59.56616967, 253.80776822, 1]))
 
     # import pdb; pdb.set_trace()
 
-    delta_z = np.sqrt(geo_ref_diff[2, :] * geo_ref_diff[2, :])
-    delta_r = np.sqrt(geo_ref_diff[0, :] * geo_ref_diff[0, :] +
-                      geo_ref_diff[1, :] * geo_ref_diff[1, :] +
-                      geo_ref_diff[2, :] * geo_ref_diff[2, :])
+    delta_z = (geo_ref_diff[2, :] **2) ** (1./2.)
+    delta_r = (geo_ref_diff[0, :] **2 + geo_ref_diff[1, :] **2 )** (1./2.)
 
     delta_z_ia = np.zeros([ntrials, npoints])
     delta_r_ia = np.zeros([ntrials, npoints])
     delta_z_icp = np.zeros([ntrials, npoints])
     delta_r_icp = np.zeros([ntrials, npoints])
-
-    #calculate radius
-    origin_mat = np.zeros(original_corrs_hom.shape)
-    origin_mat[range(0, 4), :] = np.array([0,0,0, 1]).reshape(4, 1)
-    radius = np.sum(original_corrs**2, axis= 1)**(1./2)
-    indeces = radius.argsort(axis=0)
 
     for trial in range(0, ntrials):
 
@@ -208,46 +156,35 @@ def compute_geo_accuracy(fid_path, original_corrs_path,
 
         # transform the points with the residual transformations
         ia_corrs_hom = Hs_ia_error.dot(original_corrs_hom)
-        icp_corrs_ho
-        m = Hs_icp_error.dot(original_corrs_hom)
+        icp_corrs_hom = Hs_icp_error.dot(original_corrs_hom)
         # geo-register
-        # geo_ia_corrs_hom = GEO.transform_points(ia_corrs_hom)
-        # geo_icp_corrs_hom = GEO.transform_points(icp_corrs_hom)
+        geo_ia_corrs_hom = GEO.transform_points(ia_corrs_hom)
+        geo_icp_corrs_hom = GEO.transform_points(icp_corrs_hom)
         # distances
-        # geo_ia_ref_diff = geo_ia_corrs_hom - fid_points_hom
-        # geo_icp_ref_diff = geo_icp_corrs_hom - fid_points_hom
-        ia_ref_diff = ia_corrs_hom - original_corrs_hom
-        icp_ref_diff = icp_corrs_hom - original_corrs_hom
+        geo_ia_ref_diff = geo_ia_corrs_hom - fid_points_hom
+        geo_icp_ref_diff = geo_icp_corrs_hom - fid_points_hom
 
-        delta_z_ia[trial, :] = np.sqrt(ia_ref_diff[2, :] ** 2)
-        delta_r_ia[trial, :] = np.sqrt(ia_ref_diff[0, :] ** 2 +
-                                       ia_ref_diff[1, :] ** 2 +
-                                       ia_ref_diff[2, :] ** 2)
+        delta_z_ia[trial, :] = np.sqrt(geo_ia_ref_diff[2, :] ** 2)
+        delta_r_ia[trial, :] = np.sqrt(geo_ia_ref_diff[0, :] ** 2 +
+                                       geo_ia_ref_diff[1, :] ** 2 )
 
 
-        delta_z_icp[trial, :] = np.sqrt(icp_ref_diff[2, :] ** 2)
-        delta_r_icp[trial, :] = np.sqrt(icp_ref_diff[0, :] ** 2 +
-                                        icp_ref_diff[1, :] ** 2 +
-                                        icp_ref_diff[2, :] ** 2)
+        delta_z_icp[trial, :] = np.sqrt(geo_icp_ref_diff[2, :] ** 2)
+        delta_r_icp[trial, :] = np.sqrt(geo_icp_ref_diff[0, :] ** 2 +
+                                        geo_icp_ref_diff[1, :] ** 2)
 
-        import pdb; pdb.set_trace()
-
-
-
-    # import pdb; pdb.set_trace()
-
-    # radius = np.abs(fid_points_hom[2, :])
-
+        # import pdb; pdb.set_trace()
 
     return delta_z, delta_r,\
            delta_z_ia, delta_r_ia, \
-           delta_z_icp, delta_r_icp, \
-           radius
+           delta_z_icp, delta_r_icp
 
-def main(argv=None):
-    args = process_command_line(argv)
-    descriptors = ["FPFH_30"]
-    # niter = [20, 50, 75, 100, 200, 500]
+def main(logfile=None):
+
+    global LOG
+    LOG = setlogging(logfile)
+
+    descriptors = ["FPFH_30", "SHOT_30"]
     niter = 500;
     ntrials = 10;
     plot_errors = True;
@@ -263,10 +200,10 @@ def main(argv=None):
 
         delta_z, delta_r, \
         delta_z_ia, delta_r_ia, \
-        delta_z_icp, delta_r_icp, \
-        radius = compute_geo_accuracy(fid_path, original_corrs_path,
-                                 geo_tform, trials_root, desc_name,
-                                 niter, ntrials)
+        delta_z_icp, delta_r_icp = compute_geo_accuracy(fid_path,
+                                    original_corrs_path,
+                                    geo_tform, trials_root, desc_name,
+                                    niter, ntrials)
 
         #sort errors for all trials to get the 70 80 90 % errors
         delta_z_ia.sort(axis=0)
@@ -279,71 +216,84 @@ def main(argv=None):
         CE_80_ia = delta_r_ia[int(0.8 * ntrials) - 1, :]
         CE_90_ia = delta_r_ia[int(0.9 * ntrials) - 1, :]
 
-        LE_70_ia = delta_z_ia[int(0.7 * ntrials) - 1, :] - delta_z
-        LE_80_ia = delta_z_ia[int(0.8 * ntrials) - 1, :] - delta_z
-        LE_90_ia = delta_z_ia[int(0.9 * ntrials) - 1, :] - delta_z
+        LE_70_ia = delta_z_ia[int(0.7 * ntrials) - 1, :]
+        LE_80_ia = delta_z_ia[int(0.8 * ntrials) - 1, :]
+        LE_90_ia = delta_z_ia[int(0.9 * ntrials) - 1, :]
 
         CE_70_icp = delta_r_icp[int(0.7 * ntrials) - 1, :]
         CE_80_icp = delta_r_icp[int(0.8 * ntrials) - 1, :]
         CE_90_icp = delta_r_icp[int(0.9 * ntrials) - 1, :]
 
-        LE_70_icp = delta_z_icp[int(0.7 * ntrials) - 1, :] - delta_z
-        LE_80_icp = delta_z_icp[int(0.8 * ntrials) - 1, :] - delta_z
-        LE_90_icp = delta_z_icp[int(0.9 * ntrials) - 1, :] - delta_z
+        LE_70_icp = delta_z_icp[int(0.7 * ntrials) - 1, :]
+        LE_80_icp = delta_z_icp[int(0.8 * ntrials) - 1, :]
+        LE_90_icp = delta_z_icp[int(0.9 * ntrials) - 1, :]
 
-        #sort the radius and errors according to the radius
-        indeces = radius.argsort(axis=0)
-        CE_70_ia_sorted = CE_70_ia[indeces]
-        LE_70_ia_sorted = LE_70_ia[indeces]
-        CE_80_ia_sorted = CE_80_ia[indeces]
-        LE_80_ia_sorted = LE_80_ia[indeces]
-        CE_90_ia_sorted = CE_90_ia[indeces]
-        LE_90_ia_sorted = LE_90_ia[indeces]
-
-        CE_70_icp_sorted = CE_70_icp[indeces]
-        LE_70_icp_sorted = LE_70_icp[indeces]
-        CE_80_icp_sorted = CE_80_icp[indeces]
-        LE_80_icp_sorted = LE_80_icp[indeces]
-        CE_90_icp_sorted = CE_90_icp[indeces]
-        LE_90_icp_sorted = LE_90_icp[indeces]
-
-        radius_sorted = radius[indeces]
-        delta_r_sorted = delta_r[indeces]
-        delta_z_sorted = delta_z[indeces]
 
         if (plot_errors):
         #Plot CE and LE
-            fig_ia = plt.figure()
-            ax_ia = fig_ia.add_subplot(111);
+            fig_ia_CE = plt.figure()
+            ax_ia_CE = fig_ia_CE.add_subplot(111);
             plt.hold(True);
             plt.axis(tight=True);
-            ax_ia.plot(radius_sorted, CE_70_ia_sorted, "--s", color="green", label=  "CE_70 " + desc_name);
-            # ax_ia.plot(radius_sorted, LE_70_ia_sorted, "-o", color="green", label= "LE_70 " + desc_name);
-            ax_ia.plot(radius_sorted, delta_r_sorted, "--*", color="magenta", label=  "GT " + desc_name);
-            # ax_ia.plot(radius_sorted, delta_z_sorted, "-+", color="green", label= "GT " + desc_name);
-            # # ax_ia.plot(radius_sorted, CE_80_ia_sorted, "--^", color="magenta", label=  "CE_80 " + desc_name);
-            # # ax_ia.plot(radius_sorted, LE_80_ia_sorted, "-v", color="magenta", label= "LE_80 " + desc_name);
-            # # ax_ia.plot(radius_sorted, CE_90_ia_sorted, "--*", color="blue", label=  "CE_90 " + desc_name);
-            # # ax_ia.plot(radius_sorted, LE_90_ia_sorted, "-+", color="blue", label= "LE_90 " + desc_name);
-            # ax_ia.set_xlabel('Distance to Origin',fontsize= 20);
-            # ax_ia.set_ylabel('90% Error (meters)',fontsize= 20);
-            # ax_ia.legend(loc='best', frameon=False);
+            ax_ia_CE.plot(CE_70_ia, "--s", color="green", label= "CE_70");
+            ax_ia_CE.plot(CE_80_ia, "--^", color="magenta", label= "CE_80");
+            ax_ia_CE.plot(CE_90_ia, "--*", color="blue", label= "CE_90");
+            ax_ia_CE.plot( delta_r, "--o", color="cyan", label=  "GT");
+            ax_ia_CE.set_xlabel('Fiducial Marker (index)',fontsize= 20);
+            ax_ia_CE.set_ylabel('Error (meters)',fontsize= 20);
+            ax_ia_CE.legend(loc='best', frameon=False);
+            # ax_ia_CE.set_title('IA CE')
+            fname = trials_root + "/GEO_results/IA_CE_" + desc_name + ".pdf"
+            fig_ia_CE.savefig(fname, transparent=True, pad_inches=5)
 
-            fig_icp = plt.figure()
-            ax_icp = fig_icp.add_subplot(111);
+
+
+            fig_ia_LE = plt.figure()
+            ax_ia_LE = fig_ia_LE.add_subplot(111);
             plt.hold(True);
             plt.axis(tight=True);
-            ax_icp.plot(radius_sorted, CE_70_icp_sorted, "--s", color="green", label=  "CE_70 " + desc_name);
-            # ax_icp.plot(radius_sorted, LE_70_icp_sorted, "-o", color="green", label= "LE_70 " + desc_name);
-            ax_icp.plot(radius_sorted, delta_r_sorted, "--*", color="magenta", label=  "GT " + desc_name);
-            # ax_icp.plot(radius_sorted, delta_z_sorted, "-+", color="green", label= "GT " + desc_name);
-            # ax_icp.plot(radius_sorted, CE_80_icp_sorted, "--^", color="magenta", label=  "CE_80 " + desc_name);
-            # ax_icp.plot(radius_sorted, LE_80_icp_sorted, "-v", color="magenta", label= "LE_80 " + desc_name);
-            # ax_icp.plot(radius_sorted, CE_90_icp_sorted, "--*", color="blue", label=  "CE_90 " + desc_name);
-            # ax_icp.plot(radius_sorted, LE_90_icp_sorted, "-+", color="blue", label= "LE_90 " + desc_name);
-            ax_icp.set_xlabel('Distance to Origin',fontsize= 20);
-            ax_icp.set_ylabel('90% Error (meters)',fontsize= 20);
-            ax_icp.legend(loc='best', frameon=False);
+            ax_ia_LE.plot(LE_70_ia, "--s", color="green", label= "LE_70");
+            ax_ia_LE.plot(LE_80_ia, "--^", color="magenta", label= "LE_80");
+            ax_ia_LE.plot(LE_90_ia, "--*", color="blue", label= "LE_90");
+            ax_ia_LE.plot( delta_z, "--o", color="cyan", label=  "GT");
+            ax_ia_LE.set_xlabel('Fiducial Marker (index)',fontsize= 20);
+            ax_ia_LE.set_ylabel('Error (meters)',fontsize= 20);
+            ax_ia_LE.legend(loc='best', frameon=False);
+            # ax_ia_LE.set_title('IA LE')
+            fname = trials_root + "/GEO_results/IA_LE_" + desc_name + ".pdf"
+            fig_ia_LE.savefig(fname, transparent=True, pad_inches=5)
+
+            fig_icp_CE = plt.figure()
+            ax_icp_CE = fig_icp_CE.add_subplot(111);
+            plt.hold(True);
+            plt.axis(tight=True);
+            ax_icp_CE.plot(CE_70_icp, "--s", color="green", label= "CE_70");
+            ax_icp_CE.plot(CE_80_icp, "--^", color="magenta", label= "CE_80");
+            ax_icp_CE.plot(CE_90_icp, "--*", color="blue", label= "CE_90");
+            ax_icp_CE.plot( delta_r, "--o", color="cyan", label=  "GT");
+            ax_icp_CE.set_xlabel('Fiducial Marker (index)',fontsize= 20);
+            ax_icp_CE.set_ylabel('Error (meters)',fontsize= 20);
+            ax_icp_CE.legend(loc='best', frameon=False);
+            # ax_icp_CE.set_title('ICP CE')
+            fname = trials_root + "/GEO_results/ICP_CE_" + desc_name + ".pdf"
+            fig_icp_CE.savefig(fname, transparent=True, pad_inches=5)
+
+
+            fig_icp_LE = plt.figure()
+            ax_icp_LE = fig_icp_LE.add_subplot(111);
+            plt.hold(True);
+            plt.axis(tight=True);
+            ax_icp_LE.plot(LE_70_icp, "--s", color="green", label= "LE_70");
+            ax_icp_LE.plot(LE_80_icp, "--^", color="magenta", label= "LE_80");
+            ax_icp_LE.plot(LE_90_icp, "--*", color="blue", label= "LE_90");
+            ax_icp_LE.plot( delta_z, "--o", color="cyan", label=  "GT");
+            ax_icp_LE.set_xlabel('Fiducial Marker (index)',fontsize= 20);
+            ax_icp_LE.set_ylabel('Error (meters)',fontsize= 20);
+            ax_icp_LE.legend(loc='best', frameon=False);
+            # ax_icp_LE.set_title('ICP LE')
+            fname = trials_root + "/GEO_results/ICP_LE_" + desc_name + ".pdf"
+            fig_icp_LE.savefig(fname, transparent=True, pad_inches=5)
+
 
             # axT.set_xlim((0,505) );
             # axT.set_yticks(np.arange(0.0,250.0,20));
@@ -352,9 +302,9 @@ def main(argv=None):
             #
             # figT.savefig("/Users/isa/Experiments/reg3d_eval/downtown_dan/T_error.pdf", transparent=True, pad_inches=5)
 
-            plt.show();
+            # plt.show();
 
-    import pdb; pdb.set_trace()
+    # import pdb; pdb.set_trace()
 
 
 
@@ -389,5 +339,20 @@ def setlogging(logfile=None):
     return logger
 
 if __name__ == '__main__':
-    status = main()
+
+    # initialize the parser object:
+    parser = argparse.ArgumentParser(description="Export PLY to PCD file")
+
+    # define options here:
+    parser.add_argument("-v", "--verbose",      action='store',    type = bool,   dest="verbose",   default=True,  help="Write debug log to log_file")
+    parser.add_argument("-L", "--log", dest="logfile", help="write debug log to log_file")
+
+    args = parser.parse_args(argv)
+
+    # set up logging
+    if args.verbose:
+        status = main(args.logfile)
+    else:
+        status = main()
+
     sys.exit(status)
