@@ -9,7 +9,6 @@ September 12, 2012
 import os, sys, argparse
 import reg3d
 
-
 if __name__ == "__main__":
 
     parser = argparse.ArgumentParser()

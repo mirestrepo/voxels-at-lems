@@ -1,0 +1,4 @@
+
+img_file="/Users/isa/Experiments/reg3d_eval/downtown_dan/original/imgs/frame_00178.tif"
+img=mpimg.imread(img_file)
+imgplot = mpimg.imshow(lum_img)

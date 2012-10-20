@@ -20,5 +20,7 @@ for trial in 3; do ./reg3d_main.sh "downtown_dan" "pert_005" $trial "" 0 0; done
 # ./reg3d_main.sh "scili_3_12" "" 0 0
 
 
-#note downtown dan 10,3 - capitol 15,5
+#note downtown dan 10,3 - capitol 15,2
 #scli-li used  scene from bmvc  experiments
+
+# find "/Users/isa/Experiments/reg3d_eval/downtown_dan" -name '*vis_sphere*.bin' -delete

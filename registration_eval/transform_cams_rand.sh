@@ -21,10 +21,11 @@
 # cd $dir_out
 # ln -s ../original/imgs ./imgs
 
-for trial in 0 1 2 3 4 5 6 7 8 9; do
-  dir_in="/Users/isa/Experiments/reg3d_eval/downtown_dan/original"
-  dir_out="/Users/isa/Experiments/reg3d_eval/downtown_dan/pert_015_$trial"
-  cd $dir_out
-  ln -s ../original/imgs ./imgs
-  cp ../original/scene_info.xml ./scene_info.xml
-done
+# for trial in 0 1 2 3 4 5 6 7 8 9; do
+#   dir_in="/Users/isa/Experiments/reg3d_eval/downtown_dan/original"
+#   dir_out="/Users/isa/Experiments/reg3d_eval/downtown_dan/pert_015_$trial"
+#   cd $dir_out
+#   ln -s ../original/imgs ./imgs
+#   cp ../original/scene_info.xml ./scene_info.xml
+# done
+
