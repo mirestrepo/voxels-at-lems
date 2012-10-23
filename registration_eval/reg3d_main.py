@@ -14,7 +14,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--root_dir",       action="store",   type=str,
         dest="root_dir",
-        default="/Users/isa/Experiments/reg3d_eval/downtown_dan",
+        default="",
         help="Path to root directory")
     parser.add_argument("--t_basename",     action="store",   type=str,
         dest="t_basename",       default="trial",

@@ -175,7 +175,7 @@ def visualize_reg_icp(gt_root_dir,trial_root_dir, descriptor, radius = 30, perce
     src_cloud=trial_root_dir + "/" + descriptor + "_" + str(radius) + "/icp_cloud_" + str(percentile) + "_" + str(nr_iterations) + "_geo.pcd"
     exe = PCLVIEW_EXE_PATH + "/pcl_viewer"
   else:
-    tgtRoot="/Users/isa/Experiments/reg3d_eval/downtown_dan/original"
+    tgtRoot=gt_root_dir
     tgt_cloud= tgtRoot+ "/gauss_233_normals_pvn_" +str(percentile) + ".ply"
     if rej_normals:
       src_cloud=trial_root_dir + "/" + descriptor + "_" + str(radius) + "/icp_cloud_" + str(percentile) + "_" + str(nr_iterations) + "_n.pcd"

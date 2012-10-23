@@ -24,3 +24,7 @@ for trial in 3; do ./reg3d_main.sh "downtown_dan" "pert_005" $trial "" 0 0; done
 #scli-li used  scene from bmvc  experiments
 
 # find "/Users/isa/Experiments/reg3d_eval/downtown_dan" -name '*vis_sphere*.bin' -delete
+
+# find "/data/helicopter_providence_3_12" -name '*vis_sphere*.bin'
+
+# find "/Users/isa/Experiments/reg3d_eval/capitol_dan"  -name '*vis_sphere*.bin'

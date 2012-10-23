@@ -1,9 +1,15 @@
-from boxm2_adaptor import *; 
+#!/usr/bin/env python
+# encoding: utf-8
+#######################################################
+# Author : Andrew Miller
+# Modifications: Isabel Restrepo
+#######################################################
+from boxm2_adaptor import *;
 from bbas_adaptor import *;
-import random, os, sys;  
+import random, os, sys;
 from optparse import OptionParser
 
-####################################################### 
+#######################################################
 # handle inputs                                       #
 #scene is given as first arg, figure out paths        #
 parser = OptionParser()
@@ -19,10 +25,7 @@ parser.add_option("-p", "--printFile" , action="store", type="string", dest="std
 print options
 print args
 
-#pth = options.cams.split('/');
-#flight = pth[-2].strip(); 
-#site   = pth[-1].strip(); 
-  
+
 # bbox/voxelSize case
 if options.voxelSize > 0.0 and options.bbox != "" :
   voxelSize = options.voxelSize
@@ -32,7 +35,7 @@ if options.voxelSize > 0.0 and options.bbox != "" :
 
   #params for save multi_block scene
   params = {}
-  params['scene_dir'] = os.getcwd() 
+  params['scene_dir'] = os.getcwd()
   params['origin'] = bbox[0:3]
 
   #compute num vox on each side
@@ -58,19 +61,19 @@ print "Creating scene from bundle file: ", options.cams
 if options.std_file != "":
    saveout = sys.stdout   # save initial state of stdout
    print saveout
-   print "STD_OUT is being redirected" 
-   set_stdout(options.std_file) 
+   print "STD_OUT is being redirected"
+   set_stdout(options.std_file)
 
 uscene, rscene = bundle2scene(options.cams, options.imgs, options.app, options.out)
 
 if options.std_file != "":
    reset_stdout();
-   print "STD_OUT is being reset" 
+   print "STD_OUT is being reset"
 
    #sys.stdout = saveout;
 
-save_scene(uscene, "uscene"); 
-save_scene(rscene, "rscene"); 
+save_scene(uscene, "uscene");
+save_scene(rscene, "rscene");
 
 print "Done!"
 
