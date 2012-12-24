@@ -21,7 +21,6 @@ export PYTHONPATH=/Projects/vxl/bin/$CONFIGURATION/lib:/Projects/vxl/src/contrib
 
 export PATH=$PATH:/Projects/voxels-at-lems-git/boxm2:/Projects/voxels-at-lems-git/vpcl:/Projects/voxels-at-lems-git/ply_util
 
-
 echo $PATH
 
 compute_normals=false;
@@ -45,28 +44,25 @@ nargs=$#;
 
 echo $nargs
 
-if [ $nargs -eq 3 ]
+nargs=$#;
+
+echo $nargs
+
+if [ $nargs -eq 2 ]
 then
-    root_basename=$1
-    trial_basename=$2
-    trial_number=$3
-elif [ $nargs -eq 1 ]
-then
-    root_basename=$1
-    trial_number=-1
-    echo "Here too"
+    flight=$1
+    site=$2
 else
     echo "Wrong number of arguments, exiting"
     exit -1
 fi
 
-if [ $trial_number -eq -1 ]; then
-   root_dir="/Users/isa/Experiments/reg3d_eval/${root_basename}/original"
-else
-   root_dir="/Users/isa/Experiments/reg3d_eval/${root_basename}/${trial_basename}_${trial_number}"
-fi
+# flight=5
+# site=7
 
-echo "This is registration_eval/main.sh. Running with the following input arguments"
+root_dir="/Users/isa/Experiments/reg3d_eval/cvg_eo_data/flight${flight}_sites/site_${site}"
+
+echo "This is registration_eval/cvg_compute_geomatry.sh. Running with the following input arguments"
 echo "Root directory:"
 echo $root_dir
 
@@ -105,10 +101,6 @@ if $flip_normals; then
     attempt=$(($attempt+1));
     try=$(($((! $flipped)) && $(($attempt<3))));
   done
-  if [flipped -eq 0]; then
-    echo "Failed to flip normals, quitting"
-    exit -1
-  fi
 fi
 
 #*******************************************************************************************************
@@ -122,7 +114,7 @@ fi
 #Threshold PLY --thresholds are specified within the scrip
 #*******************************************************************************************************
 if $thresh_PLY; then
- thresh_ply.py -i "$root_dir/gauss_233_normals.ply" -o "$root_dir/gauss_233_normals_pvn"
+ thresh_ply.py -s $root_dir -i "$root_dir/gauss_233_normals.ply" -o "$root_dir/gauss_233_normals_pvn"
 fi
 
 #*******************************************************************************************************

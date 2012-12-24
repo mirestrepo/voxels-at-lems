@@ -16,9 +16,8 @@ sys.path.append("/Projects/vxl/src/contrib/brl/bseg/boxm2/pyscripts");
 
 from boxm2_scene_adaptor import *
 from vpgl_adaptor import *
-from bbas_adaptor import *
 
-def perturb_cams(root_in, root_out, sigma):
+def perturb_cams(root_in, root_out, sigma, rng):
 
   print "hello"
 
@@ -38,7 +37,6 @@ def perturb_cams(root_in, root_out, sigma):
   for cam in cams:
     #load image and camera
     pcam = load_perspective_camera(cam);
-    rng = initialize_rng();
     pert_cam, theta, phi = perturb_camera(pcam, sigma, rng );
     cam_out_name = out_cam_dir + "/" + os.path.basename(cam);
     print cam_out_name
@@ -50,11 +48,33 @@ def perturb_cams(root_in, root_out, sigma):
 
 if __name__ == "__main__":
 
+  parser = argparse.ArgumentParser()
+  parser.add_argument("--root_dir",       action="store",   type=str,
+      dest="root_dir",
+      default="",
+      help="Path to root directory")
+  parser.add_argument("--si",          action="store",   type=int,
+        dest="si",       default=0,
+        help="Sigma index, where sigma = [0.05, 0.1, 0.15] ")
+  args = parser.parse_args()
 
-  sigma = 0.08
-  trial = 4;
+  print args
 
-  root_in = "/Users/isa/Experiments/reg3d_eval/downtown_dan/original"
-  root_out = "/Users/isa/Experiments/reg3d_eval/downtown_dan/pert_008_" + str(trial);
+  gt_root_dir = args.root_dir + "/original"
+  sigma = [0.05, 0.1, 0.15]
+  sigma_str = ["005", "01", "015"]
+  descriptor_type = args.descriptor
+  radius = 30
+  percentile = 99
+  rng = initialize_rng();
 
-  perturb_cams(root_in, root_out, sigma)
+
+  if args.perturb:
+      import perturb_cameras
+      print "Peturbing cameras"
+      for si in range(0, len(sigma)):
+          for ti in range(0, 9):
+              root_in = gt_root_dir
+              root_out = args.root_dir + "/pert_" + sigma_str[si] + "_" + str(ti)
+              perturb_cameras.perturb_cams(root_in, root_out, sigma[si], rng)
+

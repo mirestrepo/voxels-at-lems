@@ -13,13 +13,14 @@ import argparse
 import vpcl_adaptor as vpcl
 from boxm2_utils import *
 
-def compute_omp_descriptors(scene_root, descriptor_type, basename_in, radius, njobs, percentile, verbose=True):
+def compute_omp_descriptors(scene_root, descriptor_type, basename_in, radius, njobs,
+                            percentile, verbose=True, basename_out="descriptors"):
   #figure out the resolution from the scene _info.xml
   resolution = parse_scene_resolution(scene_root + "/scene_info.xml");
   print "Resolution for site is : " + str(resolution);
 
   features_dir = scene_root + "/" + descriptor_type + "_" + str(radius);
-  
+
   if not os.path.exists(features_dir + "/"):
     print features_dir + "/"
     os.makedirs(features_dir + "/");
@@ -28,17 +29,17 @@ def compute_omp_descriptors(scene_root, descriptor_type, basename_in, radius, nj
     vpcl_batch.set_stdout("./logs/log_" + descriptor_type + 'percetile' + str(percentile) +'.log')
 
   file_in =  scene_root + "/" + basename_in + "_" + str(percentile) + ".ply"
-  file_out = features_dir + "/descriptors_" + str(percentile) + ".pcd";
+  file_out = features_dir + "/" + basename_out + "_" + str(percentile) + ".pcd";
 
   if verbose :
     print "Processing: "
     print file_in
     print "Saving to:"
-    print file_out 
-  
+    print file_out
+
   vpcl.compute_descriptor(file_in, file_out, radius*resolution, descriptor_type, njobs);
 
-  if not verbose:  
+  if not verbose:
     vpcl_batch.reset_stdout();
 
   print "Done"

@@ -1,55 +1,60 @@
 #!/bin/bash
 """
-Created on October 17, 2012
+Created on December 17, 2012
 
 @author:Isabel Restrepo
 
-Discretezation Experiments for the Capitol scene
+Camera PerturbationExperiments for Residential1 = East Side
+
 """
 
-
 #***********Discretization experiments
-
-#I. Process original scene
-
-#1. train the scene 15 refine chuncks 2 iterations
-# ./train_scenes.sh "capitol_dan" "png" 15 2
-
-#2. Compute normas and descriptors
-# ./compute_geometry.sh "capitol_dan"
-
-#II. Process lidar - refer to ./capitol_lidar.sh
-
-#III. Process trials
 
 #1. Generate trials
 
 # Apply a random similarity transfomation to a set of cameras
 
-# base_dir="/Users/isa/Experiments/reg3d_eval/capitol_dan"
-# cd /Projects/vpcl/bin_make/Release/bin
-# ./transform_cameras_rand -base_dir $base_dir -dt 1 -nt 10
+# root_dir="/Users/isa/Experiments/reg3d_eval/res_east_side"
+# python reg3d_main_pert.py --root_dir $root_dir --perturb true
+
 
 # for trial in 0 1 2 3 4 5 6 7 8 9; do
-#   dir_out="/Users/isa/Experiments/reg3d_eval/capitol_dan/trial_$trial"
+#   dir_out="/Users/isa/Experiments/reg3d_eval/res_east_side/pert_005_$trial"
 #   cd $dir_out
 #   ln -s ../original/imgs ./imgs
+#   cp ../original/scene_info.xml ./scene_info.xml
+
+
+#   dir_out="/Users/isa/Experiments/reg3d_eval/res_east_side/pert_01_$trial"
+#   cd $dir_out
+#   ln -s ../original/imgs ./imgs
+#   cp ../original/scene_info.xml ./scene_info.xml
+
+
+#   dir_out="/Users/isa/Experiments/reg3d_eval/res_east_side/pert_015_$trial"
+#   cd $dir_out
+#   ln -s ../original/imgs ./imgs
+#   cp ../original/scene_info.xml ./scene_info.xml
 # done
 
-#2. Train the scene 15 refine chuncks 2 iterations
-# for trial in 0; do ./train_scenes.sh "capitol_dan" "trial" $trial "png" 15 1; done
-# for trial in 0 1 2 3 4 5 6 7 8 9; do ./train_scenes.sh "capitol_dan" "trial" $trial "png" 15 2; done
+
+#2. Train the scene
+# for trial in 0 1 2 3 4 5 6 7 8 9; do ./train_scenes.sh "res_east_side" "pert_005" $trial "png" 27 1; done
+# for trial in 0 1 2 3 4 5 6 7 8 9; do ./train_scenes.sh "res_east_side" "pert_01" $trial "png" 27 1; done
+# for trial in 0 1 2 3 4 5 6 7 8 9; do ./train_scenes.sh "res_east_side" "pert_015" $trial "png" 27 1; done
+
 
 #3. Compute normals and descriptors
-# for trial in 0; do ./compute_geometry.sh "capitol_dan" "trial" $trial; done
-# for trial in 0 1 2 3 4 5 6 7 8 9; do ./compute_geometry.sh "capitol_dan" "trial" $trial; done
+for trial in 0 1 2 3 4 5 6 7 8 9; do ./compute_geometry.sh "res_east_side" "pert_005" $trial; done
+# for trial in 0 1 2 3 4 5 6 7 8 9; do ./compute_geometry.sh "res_east_side" "pert_01" $trial; done
+# for trial in 0 1 2 3 4 5 6 7 8 9; do ./compute_geometry.sh "res_east_side" "pert_015" $trial; done
 
 #4. Register
 # for iter in 20 50 75 100 200 500; do
 
 #   n_iter_ia=$iter;
 #   n_iter_icp=$iter;
-#   root_dir="/Users/isa/Experiments/reg3d_eval/capitol_dan"
+#   root_dir="/Users/isa/Experiments/reg3d_eval/res_east_side"
 #   t_basename="trial"
 
 
@@ -78,7 +83,7 @@ Discretezation Experiments for the Capitol scene
 # done
 
 #5. Visualize few results
-# root_dir="/Users/isa/Experiments/reg3d_eval/capitol_dan"
+# root_dir="/Users/isa/Experiments/reg3d_eval/res_east_side"
 # t_basename="trial"
 # ./reg3d_main.py --root_dir $root_dir --t_basename $t_basename --trial 5 --vis_ia true --descriptor "FPFH" --n_iter 500
 # ./reg3d_main.py --root_dir $root_dir --t_basename $t_basename --trial 5 --vis_ia true --descriptor "SHOT" --n_iter 500

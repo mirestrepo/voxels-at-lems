@@ -62,6 +62,7 @@
 # /Projects/vxl/bin/Release/contrib/brl/bbas/bwm/exe/bwm_3d_site_transform_points -corrs /data/lidar_providence/capitol/capitol-dan-corrs.txt -input_path /Users/isa/Experiments/reg3d_eval/capitol_dan/original/gauss_233_normals_pvn_99.ply -output_path /Users/isa/Experiments/reg3d_eval/capitol_dan/original/gauss_233_normals_pvn_99_XYZ_geo.ply -transform_path /data/lidar_providence/capitol/capitol-dan_Hs -pts0_path /data/lidar_providence/capitol/capitol-dan-pts0.ply -pts1_path /data/lidar_providence/capitol/capitol-dan-pts1.ply
 
 
+
 ####********SciLi************
 
 ##**1. Query some info from LIDAR -- in particular we are intersted in gathering the offset
@@ -88,3 +89,59 @@
 
 ##**8. Find transformation and transfom a point cloud using correspondances
 # /Projects/vxl/bin/Release/contrib/brl/bbas/bwm/exe/bwm_3d_site_transform_points -corrs /data/lidar_providence/east_side/scili_3_12-corrs.txt -input_path /Users/isa/Experiments/reg3d_eval/scili_3_12/original/gauss_233_normals_pvn_99.ply -output_path /Users/isa/Experiments/reg3d_eval/scili_3_12/original/gauss_233_normals_pvn_99_XYZ_geo.ply -transform_path /data/lidar_providence/east_side/scili_3_12_Hs -pts0_path /data/lidar_providence/east_side/scili_3_12-pts0.ply -pts1_path /data/lidar_providence/east_side/scili_3_12-pts1.ply
+
+###*********Prospect*********
+
+##**1. Query some info from LIDAR -- in particular we are intersted in gathering the offset
+# lasinfo  -i /data/lidar_providence/east_side/19_03004634.las #liblas
+# lasinfo  -i /data/lidar_providence/east_side/19_03004634.las > /data/lidar_providence/east_side/19_03004634_info.txt  #liblas
+# CalcLasRange /data/lidar_providence/east_side/19_03004634.las   #LidarViewer UCDavis
+# CalcLasRange /data/lidar_providence/east_side/19_03004634.las  > /data/lidar_providence/east_side/19_03004634_range.txt  #LidarViewer UCDavis
+# python ./compute_lidar_offset.py -i /data/lidar_providence/east_side/19_03004634.las
+
+##**2. Process .las file -- demean and split to make it more manageble on MeshLab ...
+# las2las  -i /data/lidar_providence/east_side/19_03004634.las -o /data/lidar_providence/east_side/19_03004634_offset.las --offset "-300750.005 -4634249.995 0.0" --split-mb 70
+# las2las  -i /data/lidar_providence/east_side/19_03004634.las -o /data/lidar_providence/east_side/19_03004634_offset.las --offset "-300750.005 -4634249.995 0.0"
+##**3. Convert to XYZ - now it can be viewed in MeshLab
+# las2txt -i /data/lidar_providence/east_side/19_03004634_offset.las -o /data/lidar_providence/east_side/19_03004634_offset.xyz --delimiter " " --parse xyz --valid_only --keep-returns 1
+# las2txt -i /data/lidar_providence/east_side/19_03004634_offset-1.las -o /data/lidar_providence/east_side/19_03004634_offset-1.xyz --delimiter " " --parse xyz --valid_only --keep-returns 1
+# las2txt -i /data/lidar_providence/east_side/19_03004634_offset-2.las -o /data/lidar_providence/east_side/19_03004634_offset-2.xyz --delimiter " " --parse xyz --valid_only --keep-returns 1
+
+##**4. Use MeshLab to crop ROI and export to ply
+
+##**5. Use MeshLab align tool to pick correspondances
+#The align project gices the transfomation matrix. However, I need the corresponances to plot my fiducial errors.
+#Meshlab outputs the picked points in the console - I manually put them in the corrs.txt file i bwm format's
+
+##**7. Save Correspondances as bwm_correspondences
+
+##**8. Find transformation and transfom a point cloud using correspondances
+#see manual_aligment.sh
+
+
+####********Resisdential Middletown************
+
+##**1. Query some info from LIDAR -- in particular we are intersted in gathering the offset
+# lasinfo  -i /data/lidar_providence/middle_town_residential/19_03084602.las > /data/lidar_providence/middle_town_residential/19_03084602_info.txt  #liblas
+# python ./compute_lidar_offset.py -i /data/lidar_providence/middle_town_residential/19_03084602.las
+
+##**2. Process .las file -- demean and split to make it more manageble on MeshLab ...
+# las2las  -i /data/lidar_providence/middle_town_residential/19_03084602.las -o /data/lidar_providence/middle_town_residential/19_03084602_offset.las --offset "-308250.005 -4602749.995 0.0"
+
+##**3. Convert to XYZ - now it can be viewed in MeshLab
+# las2txt -i /data/lidar_providence/middle_town_residential/19_03084602_offset.las -o /data/lidar_providence/middle_town_residential/19_03084602_offset.xyz --delimiter " " --parse xyz --valid_only --keep-returns 1
+
+##**4. Use MeshLab to crop ROI and export to ply
+
+##**5. Use MeshLab align tool to pick correspondances
+#The align project gices the transfomation matrix. However, I need the corresponances to plot my fiducial errors.
+#Meshlab outputs the picked points in the console - I manually put them in the corrs.txt file i bwm format's
+
+##**7. Save Correspondances as bwm_correspondences
+
+##**8. Find transformation and transfom a point cloud using correspondances
+# /Projects/vxl/bin/Release/contrib/brl/bbas/bwm/exe/bwm_3d_site_transform_points -corrs /data/lidar_providence/middle_town_residential/res_middletown-corrs.txt -input_path /Users/isa/Experiments/reg3d_eval/res_middletown/original/gauss_233_normals_pvn_99.ply -output_path /Users/isa/Experiments/reg3d_eval/res_middletown/original/gauss_233_normals_pvn_99_XYZ_geo.ply -transform_path /data/lidar_providence/middle_town_residential/residential_Hs -pts0_path /data/lidar_providence/middle_town_residential/residential-pts0.ply -pts1_path /data/lidar_providence/middle_town_residential/residential-pts1.ply
+
+####********East side residential************
+##**8. Find transformation and transfom a point cloud using correspondances
+# /Projects/vxl/bin/Release/contrib/brl/bbas/bwm/exe/bwm_3d_site_transform_points -corrs /data/lidar_providence/east_side/res_east_side-corrs.txt -input_path /Users/isa/Experiments/reg3d_eval/res_east_side/original/gauss_233_normals_pvn_99.ply -output_path /Users/isa/Experiments/reg3d_eval/res_east_side/original/gauss_233_normals_pvn_99_XYZ_geo.ply -transform_path /data/lidar_providence/east_side/res_east_side_Hs -pts0_path /data/lidar_providence/east_side/res_east_side-pts0.ply -pts1_path /data/lidar_providence/east_side/res_east_side-pts1.ply

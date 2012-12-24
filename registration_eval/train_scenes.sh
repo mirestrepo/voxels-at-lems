@@ -128,7 +128,7 @@ if $build_model; then
     done
 
     #Train without refining
-    CHUNKS=5
+    CHUNKS=10
     failed2=0;
     failed_r2=0;
     failed_u2=0;

@@ -9,8 +9,10 @@ Trhough out these experiments the transfomations were saved by
 vxl or PCL. This file contains utilities to read them and use them
 to transform points
 """
-
+import numpy as np
 import transformations as tf
+from os import path
+
 
 
 class gt_transformation(object):
@@ -21,35 +23,69 @@ class gt_transformation(object):
    quaternion
    translation """
 
-    def __init__(self, Tfile):
+    def __init__(self, T):
 
-        #Load transformation
-        Tfis = open(Tfile, 'r')
-        lines = []
-        lines = Tfis.readlines()
-        self.scale = float(lines[0])
-        self.Ss = tf.scale_matrix(self.scale)
-        quat_line = lines[1].split(" ")
-        quat = tf.unit_vector(np.array([float(quat_line[3]),
-                                        float(quat_line[0]),
-                                        float(quat_line[1]),
-                                        float(quat_line[2])]))
-        self.Hs = tf.quaternion_matrix(quat)
-        trans_line = lines[2].split(" ")
-        self.Ts = np.array([float(trans_line[0]),
-                       float(trans_line[1]),
-                       float(trans_line[2])])
-        Tfis.close()
-        self.Rs = self.Hs.copy()[:3, :3]
-        self.Hs[:3, 3] = self.Ts[:3]
+        if ( type(T) == str):
+            Tfile = T
+            #Load transformation
+            Tfis = open(Tfile, 'r')
+            lines = []
+            lines = Tfis.readlines()
+            self.scale = float(lines[0])
+            self.Ss = tf.scale_matrix(self.scale)
+            quat_line = lines[1].split(" ")
+            self.quat = tf.unit_vector(np.array([float(quat_line[3]),
+                                            float(quat_line[0]),
+                                            float(quat_line[1]),
+                                            float(quat_line[2])]))
+            self.Hs = tf.quaternion_matrix(self.quat)
+            trans_line = lines[2].split(" ")
+            self.Ts = np.array([float(trans_line[0]),
+                           float(trans_line[1]),
+                           float(trans_line[2])])
+            Tfis.close()
+            self.Rs = self.Hs.copy()[:3, :3]
+            self.Hs[:3, 3] = self.Ts[:3]
 
-        self.Hs = self.Ss.dot(self.Hs)  #to add again
+            self.Hs = self.Ss.dot(self.Hs)  # to add again
+
+        elif (type(T) == np.ndarray):
+            self.Hs = T
+            scale, shear, angles, trans, persp = tf.decompose_matrix(T)
+            self.quat = tf.quaternion_from_euler(angles[0], angles[1], angles[2])
+            self.Rs = tf.quaternion_matrix(self.quat)
+            self.scale =scale[0]
+            self.Ts = trans / self.scale
+
 
         print "Loaded Ground Truth Transformation: "
         print self.Hs
 
+
     def transform_points(self, points):
         return self.Hs.dot(points)
+
+    def save_to_file(self, basename):
+        T_file = basename + ".txt"
+        T_file_mat = basename + "_matrix.txt"
+
+        if(path.exists(T_file)):
+            print "Error file already exists"
+            exit(1)
+        if(path.exists(T_file_mat)):
+            print "Error file already exists"
+            exit(1)
+
+        Tfos = open(T_file, 'w')
+        np.savetxt( Tfos, np.array([self.scale]), fmt='%.7g')
+        vxl_quat = np.array((self.quat[1],self.quat[2],self.quat[3],self.quat[0]))
+        np.savetxt( Tfos , vxl_quat.reshape((1,4)) , fmt='%.7g', delimiter=' ')
+        np.savetxt( Tfos , self.Ts.reshape((1,3))  , fmt='%.7g', delimiter=' ')
+        Tfos.close()
+
+        Tfos = open(T_file_mat, 'w')
+        np.savetxt( Tfos , self.Hs, fmt='%.7g')
+        Tfos.close()
 
 
 class geo_transformation(object):

@@ -1,11 +1,10 @@
-
 #!/bin/bash
 """
-Created on October 17, 2012
+Created on November 3, 2012
 
 @author:Isabel Restrepo
 
-Experiments for the Capitol scene
+Discretezation Experiments for Residential2 = Middletown
 """
 
 
@@ -13,9 +12,13 @@ Experiments for the Capitol scene
 
 #I. Process original scene
 
-#1. Used the scene from BMVC12 experiments
+#1. train the scene 15 refine chuncks 2 iterations
+# ./train_scenes.sh "res_middletown" "png" 15 2
 
-#II. Process lidar - refer to scili_3_12_lidar.sh
+#2. Compute normas and descriptors
+# ./compute_geometry.sh "res_middletown"
+
+#II. Process lidar
 
 #III. Process trials
 
@@ -23,28 +26,31 @@ Experiments for the Capitol scene
 
 # Apply a random similarity transfomation to a set of cameras
 
-# base_dir="/Users/isa/Experiments/reg3d_eval/scili_3_12"
+# base_dir="/Users/isa/Experiments/reg3d_eval/res_middletown"
 # cd /Projects/vpcl/bin_make/Release/bin
 # ./transform_cameras_rand -base_dir $base_dir -dt 1 -nt 10
 
 # for trial in 0 1 2 3 4 5 6 7 8 9; do
-#   dir_out="/Users/isa/Experiments/reg3d_eval/scili_3_12/trial_$trial"
+#   dir_out="/Users/isa/Experiments/reg3d_eval/res_middletown/trial_$trial"
 #   cd $dir_out
 #   ln -s ../original/imgs ./imgs
 # done
 
-#2. Train the scene 15 refine chuncks 2 iterations
-# for trial in 0 1 2 3 4 5 6 7 8 9; do ./train_scenes.sh "scili_3_12" "trial" $trial "png" 25 1; done
+
+#2. Train the scene 10 refine chuncks 3 iterations
+# for trial in 0; do ./train_scenes.sh "res_middletown" "trial" $trial "png" 10 1; done
+# for trial in 0 1 2 3 4 5 6 7 8 9; do ./train_scenes.sh "res_middletown" "trial" $trial "png" 15 2; done
 
 #3. Compute normals and descriptors
-for trial in 0 1 2 3 4 5 6 7 8 9; do ./compute_geometry.sh "scili_3_12" "trial" $trial; done
+# for trial in 0; do ./compute_geometry.sh "res_middletown" "trial" $trial; done
+for trial in 9; do ./compute_geometry.sh "res_middletown" "trial" $trial; done
 
 #4. Register
 # for iter in 20 50 75 100 200 500; do
 
 #   n_iter_ia=$iter;
 #   n_iter_icp=$iter;
-#   root_dir="/Users/isa/Experiments/reg3d_eval/scili_3_12"
+#   root_dir="/Users/isa/Experiments/reg3d_eval/res_middletown"
 #   t_basename="trial"
 
 
@@ -73,11 +79,15 @@ for trial in 0 1 2 3 4 5 6 7 8 9; do ./compute_geometry.sh "scili_3_12" "trial" 
 # done
 
 #5. Visualize few results
-# root_dir="/Users/isa/Experiments/reg3d_eval/scili_3_12"
+# root_dir="/Users/isa/Experiments/reg3d_eval/res_middletown"
 # t_basename="trial"
 # ./reg3d_main.py --root_dir $root_dir --t_basename $t_basename --trial 5 --vis_ia true --descriptor "FPFH" --n_iter 500
-# ./reg3d_main.py --root_dir $root_dir --t_basename $t_basename --trial 2 --vis_ia true --descriptor "SHOT" --n_iter 500
-# ./reg3d_main.py --root_dir $root_dir --t_basename $t_basename --trial 2 --vis_icp true --descriptor "FPFH" --n_iter 500
-# ./reg3d_main.py --root_dir $root_dir --t_basename $t_basename --trial 2 --vis_icp true --descriptor "SHOT" --n_iter 500
+# ./reg3d_main.py --root_dir $root_dir --t_basename $t_basename --trial 5 --vis_ia true --descriptor "SHOT" --n_iter 500
+# ./reg3d_main.py --root_dir $root_dir --t_basename $t_basename --trial 5 --vis_icp true --descriptor "FPFH" --n_iter 500
+# ./reg3d_main.py --root_dir $root_dir --t_basename $t_basename --trial 5 --vis_icp true --descriptor "SHOT" --n_iter 500
+
+#6. Report results
+
+
 
 

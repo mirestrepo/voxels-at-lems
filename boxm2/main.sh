@@ -42,7 +42,7 @@ use_probe=false;
 
 # create_scene_from_xml=true;
 #build_model=true;
-#crop_scene=true;
+crop_scene=true;
 #render=true;
 #render_cropped=true;
 # render_interactive=true;
@@ -62,7 +62,7 @@ use_probe=false;
 #*******************************************************************************************************
 #Top directory containing frams_original
 #root_dir="/volumes/vision/video/helicopter_providence/3d_models_3_12/site_1";
-root_dir="/Users/isa/Experiments/reg3d_eval/cvg_eo_data/flight2_sites/site_1";
+root_dir="/Users/isa/Experiments/reg3d_eval/res_middletown/trial_9";
 # root_dir="/data/hemenways"
 # directory where boxm2 scene is stored
 model_dirname="model";
@@ -76,13 +76,13 @@ NJ=720;
 #*******************************************************************************************************
 # Crop boxm2_scene to a half-open interval [min, max)
 #*******************************************************************************************************
-min_i=1;
-min_j=1;
-min_k=0;
+min_i=0;
+min_j=0;
+min_k=1;
 
-max_i=2;
-max_j=2;
-max_k=1;
+max_i=4;
+max_j=5;
+max_k=5;
 
 if $crop_scene; then
     python boxm2_crop_scene.py --boxm2_dir $boxm2_dir --min_i $min_i --min_j $min_j --min_k $min_k --max_i $max_i --max_j $max_j --max_k $max_k

@@ -1,0 +1,14 @@
+<scene>
+<lvcs cs_name="wgs84" origin_lon="0.000000" origin_lat="0.000000" origin_elev="0.000000" lon_scale="0.000000" lat_scale="0.000000" local_XYZ_unit="meters" geo_angle_unit="degrees" local_origin_x="0.000000" local_origin_y="0.000000" theta="0.000000">
+</lvcs>
+<local_origin x="-2.669921" y="-2.402381" z="-0.979375">
+</local_origin>
+<scene_paths path="model/">
+</scene_paths>
+<version number="2">
+</version>
+<appearance apm="boxm2_mog3_grey">
+</appearance>
+<appearance apm="boxm2_num_obs">
+</appearance>
+</scene>
