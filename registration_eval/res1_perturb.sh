@@ -45,9 +45,9 @@ Camera PerturbationExperiments for Residential1 = East Side
 
 
 #3. Compute normals and descriptors
-for trial in 0 1 2 3 4 5 6 7 8 9; do ./compute_geometry.sh "res_east_side" "pert_005" $trial; done
+# for trial in 7; do ./compute_geometry.sh "res_east_side" "pert_005" $trial; done
 # for trial in 0 1 2 3 4 5 6 7 8 9; do ./compute_geometry.sh "res_east_side" "pert_01" $trial; done
-# for trial in 0 1 2 3 4 5 6 7 8 9; do ./compute_geometry.sh "res_east_side" "pert_015" $trial; done
+for trial in 0 1 2 3 4 5 6 7 8 9; do ./compute_geometry.sh "res_east_side" "pert_015" $trial; done
 
 #4. Register
 # for iter in 20 50 75 100 200 500; do

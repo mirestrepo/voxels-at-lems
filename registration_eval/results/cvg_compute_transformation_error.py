@@ -129,8 +129,6 @@ if __name__ == '__main__':
           IA_errors_T[s*3][f*2 + 1] = IA_error_SHOT_99[1]
           ICP_errors_R[s*3][f*2 + 1] = ICP_error_SHOT_99[0]
           ICP_errors_T[s*3][f*2 + 1] = ICP_error_SHOT_99[1]
-
-          IA_errors_R[s*3 + 1][f*2 + 1] = IA_error_SHOT_95[0]
           IA_errors_T[s*3 + 1][f*2 + 1] = IA_error_SHOT_95[1]
           ICP_errors_R[s*3 + 1][f*2 + 1] = ICP_error_SHOT_95[0]
           ICP_errors_T[s*3 + 1][f*2 + 1] = ICP_error_SHOT_95[1]
@@ -149,6 +147,14 @@ print " \\\\\n".join([" & ".join(map(str,line)) for line in IA_errors_R*(180/np.
 
 print "Translation errors "
 print " \\\\\n".join([" & ".join(map(str,line)) for line in IA_errors_T])
+
+
+print "Rotation errors ICP "
+
+print " \\\\\n".join([" & ".join(map(str,line)) for line in ICP_errors_R*(180/np.pi)])
+
+print "Translation errors ICP"
+print " \\\\\n".join([" & ".join(map(str,line)) for line in ICP_errors_T])
 
 
 # print " \\\\\n\\hline \\\n".join(["\\rowcolor{white} \\\n \\multirow{2}{*}{Site }&FA &" + " & ".join(map(str,line1) ) + "\\\\\n \\cline{2-5}\\\n &FA+ICP & " + " & ".join(map(str,line2) ) for line1, line2 in zip(IA_errors_R*(180/np.pi), ICP_errors_R*(180/np.pi))])

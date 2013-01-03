@@ -89,11 +89,7 @@ if $compute_normals; then
 fi
 
 if $flip_normals; then
-  flipped=0;
-  attempt=0;
-  try=1;
-  while [ $try -eq 1 ];
-  do
+    flipped=0;
     log_file="$root_dir/flip_normals_log.log"
     boxm2_flip_normals.py -s $root_dir -x "$model_dirname/$scene_file" -g $device_name --use_sum true -p $log_file
     status=${?}
@@ -101,14 +97,10 @@ if $flip_normals; then
     if [ $status -eq 0 ]; then
       flipped=1;
       echo "Succeeded!"
+    else
+      echo "Failed to flip normals, quitting"
+      exit -1
     fi
-    attempt=$(($attempt+1));
-    try=$(($((! $flipped)) && $(($attempt<3))));
-  done
-  if [flipped -eq 0]; then
-    echo "Failed to flip normals, quitting"
-    exit -1
-  fi
 fi
 
 #*******************************************************************************************************

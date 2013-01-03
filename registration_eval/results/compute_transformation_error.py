@@ -271,7 +271,6 @@ def main(logfile=None):
     if (plot_errors):
         axT.set_xlabel('Number of RANSAC_FA Iterations',fontsize= 20);
         axT.set_ylabel('Error (meters)',fontsize= 20);
-        #classes= ['Plane', 'House', 'Building', 'Car', 'Parking Lot'];
         axT.set_xlim((0,505) );
         axT.set_yticks(np.arange(0.0,250.0,20));
         # axT.legend(bbox_to_anchor=(0., 1.02, 1., .102), loc=3,
