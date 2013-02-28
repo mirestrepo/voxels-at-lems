@@ -8,14 +8,15 @@ A script to set up a small "common bounding box for all CVG sites"
 """
 
 
-
+import sys
+import os
+sys.path.append(os.pardir)
 
 import reg3d_transformations as reg3d_T
 import numpy as np
 from numpy import linalg as LA
 import transformations as tf
 
-import sys
 PLY_UTIL = "/Projects/voxels-at-lems-git/ply_util"
 VOXELS_AT_LEMS_VPCL = "/Projects/voxels-at-lems-git/vpcl"
 

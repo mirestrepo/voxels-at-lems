@@ -44,23 +44,74 @@ from numpy import linalg as LA
 #Compute Rigid Transformation
 #*******************************************************************************************************
 
-def register_ia(gt_root_dir, trial_root_dir, descriptor_type, radius = 30,
-                percentile = 99, nr_iterations=200, verbose = True,
-                aux_output_string = "", descriptors_string = "descriptors",
-                basename_in="gauss_233_normals_pvn", gt_fname ="Hs.txt"):
+# def register_ia(gt_root_dir, trial_root_dir, descriptor_type, radius = 30,
+#                 percentile = 99, nr_iterations=200, verbose = True,
+#                 aux_output_string = "", descriptor_string = "descriptors",
+#                 basename_in="gauss_233_normals_pvn", gt_fname ="Hs.txt"):
 
+def register_ia(**kwargs):
+    gt_root_dir         = kwargs.get('gt_root_dir')
+    trial_root_dir      = kwargs.get('trial_root_dir')
+    descriptor_type     = kwargs.get('descriptor_type')
+    radius              = kwargs.get('radius', 30)
+    percentile          = kwargs.get('percentile' ,99)
+    nr_iterations       = kwargs.get('nr_iterations', 200)
+    nsamples            = kwargs.get('nsamples', 3)
+    min_sample_distance = kwargs.get('sample_distance', 1)
+    #min_sample_distance gets multiplied by radius and resolution
+    compute_scale       = kwargs.get('compute_scale', False)
+    verbose             = kwargs.get('verbose', True)
+    aux_output_string   = kwargs.get('aux_output_string', "")
+    descriptor_string   = kwargs.get('descriptor_string', 'descriptors')
+    basename_in         = kwargs.get('basename_in',"gauss_233_normals_pvn")
+    gt_fname            = kwargs.get('gt_fname',"Hs.txt")
+    scale               = kwargs.get('scale', 0)
+    bound_scale         = kwargs.get('bound_scale', False)
+    bound_percentile    = kwargs.get('bound_percentile', 100)
+
+
+    for key in kwargs:
+        print "Arguments: %s: %s" % (key, kwargs[key])
+
+    print descriptor_string
+    print aux_output_string
+    max_scale=0;
+    min_scale=0;
     #read the scale from file
-    Tfile = trial_root_dir + "/" + gt_fname
-    scale = -1;
-    try:
-        Tfis = open(Tfile, 'r')
-    except:
-      scale = 1
-    else:
-        lines = []
-        lines = Tfis.readlines()
-        scale = float(lines[0])
-        Tfis.close()
+    if(not compute_scale and scale == 0):
+      Tfile = trial_root_dir + "/" + gt_fname
+      try:
+          Tfis = open(Tfile, 'r')
+      except:
+        scale = 1
+        print "Failed to read " , Tfile
+      else:
+          lines = []
+          lines = Tfis.readlines()
+          scale = float(lines[0])
+          Tfis.close()
+          print "Scale read from file: " , scale
+
+    if compute_scale and bound_scale:
+      Tfile = trial_root_dir + "/" + gt_fname
+      try:
+          Tfis = open(Tfile, 'r')
+      except:
+        scale = 1
+        print "Failed to read " , Tfile
+      else:
+          lines = []
+          lines = Tfis.readlines()
+          scale = float(lines[0])
+          Tfis.close()
+          print "Scale read from file: ", scale
+
+      max_scale = scale + scale*bound_percentile*(1.0/100.0)
+      min_scale = scale - scale*bound_percentile*(1.0/100.0)
+
+      print "Scale bounds Percentile: " , bound_percentile
+      print "Min Scale: ", min_scale
+      print "max_scale: ", max_scale
 
 
     print "Using Scale: " , scale
@@ -69,15 +120,13 @@ def register_ia(gt_root_dir, trial_root_dir, descriptor_type, radius = 30,
     src_scene_root=trial_root_dir
     tgt_scene_root=gt_root_dir
 
-
-
     src_fname =  src_scene_root + "/" + basename_in + "_" + str(percentile) + ".ply"
     src_features_dir = src_scene_root + "/" + descriptor_type + "_" + str(radius)
-    src_features_fname = src_features_dir + "/" + descriptors_string + "_" + str(percentile) + ".pcd"
+    src_features_fname = src_features_dir + "/" + descriptor_string + "_" + str(percentile) + ".pcd"
 
     tgt_fname =  tgt_scene_root + "/" + basename_in + "_" + str(percentile) + ".ply"
     tgt_features_dir = tgt_scene_root + "/" + descriptor_type + "_" + str(radius)
-    tgt_features_fname = tgt_features_dir + "/" + descriptors_string + "_" + str(percentile) + ".pcd"
+    tgt_features_fname = tgt_features_dir + "/" + descriptor_string + "_" + str(percentile) + ".pcd"
 
     output_cloud_fname =  src_features_dir + "/ia_cloud_" + str(percentile) +"_" + str(nr_iterations) + "_" + aux_output_string + ".pcd";
     tform_fname =  src_features_dir + "/ia_transformation_" + str(percentile) +"_" + str(nr_iterations) + "_" + aux_output_string + ".txt";
@@ -87,33 +136,56 @@ def register_ia(gt_root_dir, trial_root_dir, descriptor_type, radius = 30,
 
     print "Here"
     if not verbose:
-        py_vpcl.set_stdout(src_features_dir+ "/log_ia_" + str(percentile) +'.log')
+        py_vpcl.set_stdout(src_features_dir+ "/log_ia_" + str(percentile) +"_" + str(nr_iterations) + "_" + aux_output_string +'.log')
 
     #****PARAMETERS*******#
-    min_sample_distance = radius*tgt_scene_res
-    max_dist = 4*min_sample_distance
+    min_sample_distance = min_sample_distance*radius*tgt_scene_res
+    max_dist = 4*radius*tgt_scene_res
 
-    vpcl_adaptor.register_ia_sac(  srcFname     = src_fname,
-                                 tgtFname     = tgt_fname,
-                                 srcFeatures  = src_features_fname,
-                                 tgtFeatures  = tgt_features_fname,
-                                 outCloud     = output_cloud_fname,
-                                 tformFname   = tform_fname,
-                                 descType     = descriptor_type,
-                                 minSampleDist= min_sample_distance,
-                                 maxCorrDist  = max_dist,
-                                 numIter      = nr_iterations,
-                                 scale        = scale)
+    ransac_scale, avg_scale = vpcl_adaptor.register_ia_sac(  srcFname     = src_fname,
+                                                             tgtFname     = tgt_fname,
+                                                             srcFeatures  = src_features_fname,
+                                                             tgtFeatures  = tgt_features_fname,
+                                                             outCloud     = output_cloud_fname,
+                                                             tformFname   = tform_fname,
+                                                             descType     = descriptor_type,
+                                                             minSampleDist= min_sample_distance,
+                                                             maxCorrDist  = max_dist,
+                                                             numIter      = nr_iterations,
+                                                             numSamples   = nsamples,
+                                                             computeScale = compute_scale,
+                                                             scale        = scale,
+                                                             boundScale   = bound_scale,
+                                                             minScale     = min_scale,
+                                                             maxScale     = max_scale)
 
     if not verbose:
         py_vpcl.reset_stdout();
         py_vpcl.clear();
     print "Done with SAC_IA";
 
-def register_icp(gt_root_dir,trial_root_dir, descriptor_type, radius = 30,
-                 percentile = 99, nr_iterations=200, rej_normals=False,
-                 verbose = True, use_max_nr_iter=False,
-                 aux_output_string = "", basename_in="gauss_233_normals_pvn"):
+    return ransac_scale, avg_scale
+
+def register_icp(**kwargs):
+
+  gt_root_dir         = kwargs.get('gt_root_dir')
+  trial_root_dir      = kwargs.get('trial_root_dir')
+  descriptor_type     = kwargs.get('descriptor_type')
+  radius              = kwargs.get('radius', 30)
+  percentile          = kwargs.get('percentile' ,99)
+  nr_iterations       = kwargs.get('nr_iterations', 200)
+  rej_normals         = kwargs.get('rej_normals', False)
+  compute_scale       = kwargs.get('compute_scale', False)
+  use_max_nr_iter     = kwargs.get('use_max_nr_iter', False)
+  verbose             = kwargs.get('verbose', True)
+  aux_output_string   = kwargs.get('aux_output_string', "")
+  descriptor_string   = kwargs.get('descriptor_string', 'descriptors')
+  basename_in         = kwargs.get('basename_in',"gauss_233_normals_pvn")
+
+
+
+  for key in kwargs:
+      print "Arguments: %s: %s" % (key, kwargs[key])
 
   #path to where all scenes are
   src_scene_root=trial_root_dir;
@@ -137,10 +209,9 @@ def register_icp(gt_root_dir,trial_root_dir, descriptor_type, radius = 30,
   tgt_scene_res = parse_scene_resolution(tgt_scene_info);
 
   if not verbose:
-    py_vpcl.set_stdout(src_features_dir+ "/log_icp_" + str(percentile) +'.log')
+    py_vpcl.set_stdout(src_features_dir+ "/log_icp_" + str(percentile) +"_" + str(nr_iterations) + "_" + aux_output_string +'.log')
 
-  min_sample_distance = radius*tgt_scene_res;
-  max_dist = 4*min_sample_distance;
+  max_dist = 4*radius*tgt_scene_res;
   translation_threshold = 0.001 * tgt_scene_res #used to be 0.1
   rotation_threshold = 0.001; #0.1 degree
 
@@ -156,7 +227,8 @@ def register_icp(gt_root_dir,trial_root_dir, descriptor_type, radius = 30,
                              epsTrans     = translation_threshold,
                              epsRot       = rotation_threshold,
                              numIter      = nr_iterations,
-                             rejectNormals = rej_normals);
+                             rejectNormals = rej_normals,
+                             computeScale = compute_scale);
 
   if not verbose:
     py_vpcl.reset_stdout();
@@ -200,17 +272,16 @@ def visualize_reg_icp(gt_root_dir,trial_root_dir, descriptor, radius = 30, perce
 
 def transformation_error(**kwargs):
 
-  root_dir = kwargs.get('root_dir')
-  descriptor_type = kwargs.get('descriptor_type')
-  radius = kwargs.get('radius', 30)
-  percentile = kwargs.get('percentile', 99)
-  nr_iterations = kwargs.get('nr_iterations', 500)
+  root_dir          = kwargs.get('root_dir')
+  descriptor_type   = kwargs.get('descriptor_type')
+  radius            = kwargs.get('radius', 30)
+  percentile        = kwargs.get('percentile', 99)
+  nr_iterations     = kwargs.get('nr_iterations', 500)
   aux_output_string = kwargs.get('aux_output_string', "")
-  descriptors_string = kwargs.get('descriptors_string', "descriptors")
-  gt_fname = kwargs.get('gt_fname', "Hs.txt")
-  geo_tfile = kwargs.get('geo_tfile', "")
-
-
+  descriptor_string = kwargs.get('descriptor_string', "descriptors")
+  gt_fname          = kwargs.get('gt_fname', "Hs.txt")
+  geo_tfile         = kwargs.get('geo_tfile', "")
+  compute_scale     = kwargs.get('compute_scale', False)
 
   src_features_dir = root_dir + "/" + descriptor_type + "_" + str(radius)
 
@@ -228,13 +299,13 @@ def transformation_error(**kwargs):
   Tfile_ia = src_features_dir + "/ia_transformation_" + str(percentile) + "_" + str(nr_iterations) + "_" + aux_output_string + ".txt";
   Tfile_icp = src_features_dir + "/icp_transformation_" + str(percentile) + "_" + str(nr_iterations) + "_" + aux_output_string + ".txt"
 
-  REG_Tform = reg3d_T.pcl_transformation(Tfile_ia, Tfile_icp)
+  REG_Tform = reg3d_T.pcl_transformation(Tfile_ia, Tfile_icp, (not compute_scale))
 
 
-  #Initial Aligment errors
-  #Rotation error - half angle between the normalized quaterions
+  #Initial Alignment errors
+  #Rotation error - half angle between the normalized quaternions
   quat_ia = tf.unit_vector(tf.quaternion_from_matrix(REG_Tform.Rs_ia));
-  Rs_error_ia_norm = math.acos(abs(np.dot(quat_ia, GT_Tform.quat)));
+  Rs_error_ia_norm = math.acos(abs(np.dot(quat_ia, GT_Tform.quat)))* 180/np.pi;
 
   #Translation error
   # x = REG_Tform.Rs_ia*x_ia + Ts_ia = REG_Tform.Rs_ia(x_ia + np.dot(REG_Tform.Rs_ia.T(), Ts_ia)
@@ -242,24 +313,24 @@ def transformation_error(**kwargs):
   Ts_error_ia = (REG_Tform.Rs_ia.T).dot(REG_Tform.Ts_ia) - (GT_Tform.Rs.T).dot(GT_Tform.Ts)
   Ts_error_ia_norm = GEO.scale_geo*GT_Tform.scale*LA.norm(Ts_error_ia)
 
-  print  "Error (R,T)", Rs_error_ia_norm , Ts_error_ia_norm
-
+  scale_error_ia = 1.0 - REG_Tform.scale_ia/GT_Tform.scale
+  print  "Error (S,R,T)", scale_error_ia,  Rs_error_ia_norm , Ts_error_ia_norm
 
   #ICP errors
-  #Rotation error - half angle between the normalized quaterions
-  quat_icp = tf.unit_vector(tf.quaternion_from_matrix(REG_Tform.Rs_icp));
-  Rs_error_icp_norm = math.acos(abs(np.dot(quat_icp, GT_Tform.quat)));
+  #Rotation error - half angle between the normalized quaternions
+  quat_icp = tf.unit_vector(tf.quaternion_from_matrix(REG_Tform.Rs_icp))
+  Rs_error_icp_norm = math.acos(abs(np.dot(quat_icp, GT_Tform.quat)))* 180/np.pi
 
   #Translation error
   # x = REG_Tform.Rs_ia*x_ia + Ts_ia = REG_Tform.Rs_ia(x_ia + np.dot(REG_Tform.Rs_ia.T(), Ts_ia)
   # np.dot(REG_Tform.Rs_ia.T(), Ts_ia) correspond to trans on ia coordinate system
   Ts_error_icp = (REG_Tform.Rs_icp.T).dot(REG_Tform.Ts_icp) - (GT_Tform.Rs.T).dot(GT_Tform.Ts)
   Ts_error_icp_norm = GEO.scale_geo*GT_Tform.scale*LA.norm(Ts_error_icp)
+  scale_error_icp = 1.0 - (REG_Tform.scale_icp*REG_Tform.scale_ia)/GT_Tform.scale
+  print  "Error (S, R,T)", scale_error_icp, Rs_error_icp_norm , Ts_error_icp_norm
 
-  print  "Error (R,T)", Rs_error_icp_norm , Ts_error_icp_norm
-
-  IA_error = np.array([Rs_error_ia_norm, Ts_error_ia_norm]);
-  ICP_error = np.array([Rs_error_icp_norm, Ts_error_icp_norm])
+  IA_error = np.array([scale_error_ia, Rs_error_ia_norm, Ts_error_ia_norm])
+  ICP_error = np.array([scale_error_icp, Rs_error_icp_norm, Ts_error_icp_norm])
   # import code; code.interact(local=locals())
 
   return IA_error, ICP_error

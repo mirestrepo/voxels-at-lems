@@ -16,7 +16,7 @@ from os import path
 
 
 class gt_transformation(object):
-    """Handels processing a groud truth tranfomation
+    """Handles processing a ground truth transfomation
    File saved using vxl format
    x' = s *(Rx + T)
    scale
@@ -137,25 +137,60 @@ class pcl_transformation(object):
     H (4x4) - = [R|T]
     """
 
-    def __init__(self, ia_Tfile, icp_Tfile):
+    def __init__(self, ia_Tfile, icp_Tfile, force_icp_unit_scale=True):
 
         #Load IA transformation
         Tfis = open(ia_Tfile, 'r')
-        self.Hs_ia = np.genfromtxt(Tfis, skip_header=1, usecols={0, 1, 2, 3})
-        Tfis.close()
-        Tfis = open(ia_Tfile, 'r')
-        self.Ss_ia = np.genfromtxt(Tfis, skip_footer=4, usecols={0})
-        Tfis.close()
-        self.Rs_ia = self.Hs_ia[:3, :3] * (1.0 / self.Ss_ia)
-        self.Ts_ia = self.Hs_ia[:3, 3] * (1.0 / self.Ss_ia)
+        lines = Tfis.readlines()
+        format = len(lines)
+        Tfis.seek(0) #reset file pointer
+
+
+        if format==5:
+            """If the transformation was saved as
+            -----IA-------------
+            scale
+            H (4x4) - = [S*R|S*T]
+            """
+            self.Hs_ia = np.genfromtxt(Tfis, skip_header=1, usecols={0, 1, 2, 3})
+            Tfis.close()
+            Tfis = open(ia_Tfile, 'r')
+            self.scale_ia = np.genfromtxt(Tfis, skip_footer=4, usecols={0})
+            Tfis.close()
+            self.Rs_ia = self.Hs_ia[:3, :3] * (1.0 / self.scale_ia)
+            self.Ts_ia = self.Hs_ia[:3, 3] * (1.0 / self.scale_ia)
+
+        if format==4:
+            """If the transformation was saved as
+            -----IA-------------
+            H (4x4) - = [S*R|S*T]
+            """
+            self.Hs_ia = np.genfromtxt(Tfis, usecols={0, 1, 2, 3})
+            Tfis.close()
+            scale, shear, angles, trans, persp = tf.decompose_matrix(self.Hs_ia)
+            self.scale_ia = scale[0]  # assuming isotropic scaling
+
+            self.Rs_ia = self.Hs_ia[:3, :3] * (1.0 / self.scale_ia)
+            self.Ts_ia = self.Hs_ia[:3, 3] * (1.0 / self.scale_ia)
 
         #Load ICP transformation
         Tfis = open(icp_Tfile, 'r')
         self.Hs_icp = np.genfromtxt(Tfis, usecols={0, 1, 2, 3})
         Tfis.close()
+
+        if np.isnan(np.sum(self.Hs_icp)):
+            self.Hs_icp = np.identity(4)
+
+        if force_icp_unit_scale:
+            print "ICP assuming unit scale"
+            self.scale_icp = 1.0;
+        else:
+            scale, shear, angles, trans, persp = tf.decompose_matrix(self.Hs_icp)
+            self.scale_icp = scale[0]  # assuming isotropic scaling
+
         self.Hs_icp = self.Hs_icp.dot(self.Hs_ia)
-        self.Rs_icp = self.Hs_icp[:3, :3] * (1.0 / self.Ss_ia)
-        self.Ts_icp = self.Hs_icp[:3, 3] * (1.0 / self.Ss_ia)
+        self.Rs_icp = self.Hs_icp[:3, :3] * (1.0 / (self.scale_ia * self.scale_icp))
+        self.Ts_icp = self.Hs_icp[:3, 3] * (1.0 / (self.scale_ia * self.scale_icp))
 
         # scale, shear, angles, trans, persp = tf.decompose_matrix(self.Hs_ia)
         # self.Rs_ia = tf.euler_matrix(*angles)
@@ -171,6 +206,9 @@ class pcl_transformation(object):
 
         print "Loaded ICP Transformation: "
         print self.Hs_icp
+
+        print "Loaded IA-ICP Scales: "
+        print self.scale_ia, self.scale_icp
 
     def transform_points_ia(self, points):
         return self.Hs_ia.dot(points)

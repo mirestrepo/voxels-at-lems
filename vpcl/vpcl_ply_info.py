@@ -2,7 +2,7 @@
 # encoding: utf-8
 """
 Author: Isabel Restrepo
-Script to threshold a .ply file based on percentiles.
+Script to compute centroid from a PLY file
 CAUTION! - This method is very memory inefficient
 """
 import os

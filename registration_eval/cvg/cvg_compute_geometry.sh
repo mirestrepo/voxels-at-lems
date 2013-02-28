@@ -30,9 +30,9 @@ flip_normals=false;
 compute_descriptors=false;
 
 
-compute_normals=true;
-flip_normals=true;
-export_scene=true;
+# compute_normals=true;
+# flip_normals=true;
+# export_scene=true;
 thresh_PLY=true;
 compute_descriptors=true;
 
@@ -114,7 +114,7 @@ fi
 #Threshold PLY --thresholds are specified within the scrip
 #*******************************************************************************************************
 if $thresh_PLY; then
- thresh_ply.py -s $root_dir -i "$root_dir/gauss_233_normals.ply" -o "$root_dir/gauss_233_normals_pvn"
+  thresh_ply.py -i "$root_dir/gauss_233_normals.ply" -o "$root_dir/gauss_233_normals_pvn"
 fi
 
 #*******************************************************************************************************

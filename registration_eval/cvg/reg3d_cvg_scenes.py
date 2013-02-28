@@ -7,6 +7,7 @@ September 12, 2012
 """
 
 import os, sys, argparse
+sys.path.append(os.pardir)
 import reg3d
 
 if __name__ == "__main__":
@@ -88,9 +89,17 @@ if __name__ == "__main__":
 
     if args.reg_ia:
         print "Running IA"
-        reg3d.register_ia(gt_root_dir, trial_root_dir, descriptor_type,
-            radius, percentile, args.n_iter, verbose, aux_output_string,
-            descriptor_string, args.basename_in, gt_fname)
+        reg3d.register_ia(gt_root_dir       = gt_root_dir,
+                          trial_root_dir    = trial_root_dir,
+                          descriptor_type   = descriptor_type,
+                          radius            = radius,
+                          percentile        = percentile,
+                          nr_iterations     = args.n_iter,
+                          verbose           = verbose,
+                          aux_output_string = aux_output_string,
+                          descriptor_string = descriptor_string,
+                          basename_in       = args.basename_in,
+                          gt_fname          = gt_fname)
 
     if args.reg_icp:
         print "Running ICP"

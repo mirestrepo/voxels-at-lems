@@ -173,10 +173,13 @@ def main(logfile=None):
 
     global LOG
     LOG = setlogging(logfile)
-    descriptors = ["FPFH", "SHOT"]
-    niter = [20, 50, 75, 100, 200, 500]
+    # descriptors = ["FPFH", "SHOT"]
+    descriptors = ["FPFH"]
+    # niter = [20, 50, 75, 100, 200, 500]
+    niter = [500]
+
     ntrials = 10
-    plot_errors = True
+    plot_errors = False
 
     if (plot_errors):
         colors = ['magenta','blue','green', 'red', 'black']
@@ -225,7 +228,8 @@ def main(logfile=None):
             ICP_error_min[iter_idx, :]= np.min(ICP_error, axis=0)
             IA_error_median[iter_idx, :] = np.median(IA_error, axis=0)
             ICP_error_median[iter_idx, :]= np.median(ICP_error, axis=0)
-        # import code; code.interact(local=locals())
+
+            import code; code.interact(local=locals())
 
         if (plot_errors):
 

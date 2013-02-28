@@ -84,13 +84,28 @@ for f in toRemove:
 #Compute Gradients and exctract points
 ########################################################
 filters = create_kernel_vector("gauss_x", "XYZ", opts.dim_x, opts.dim_y, opts.dim_z, opts.supp_x, opts.supp_y, opts.supp_z);
-scene.kernel_vector_filter(filters);
+status = scene.kernel_vector_filter(filters);
+if(status == False) :
+     print "Computing Filters Failed, clearing cache and exiting:"
+     scene.clear_cache();
+     boxm2_batch.clear();
+     sys.exit(2);
 scene.write_cache();
 scene.clear_cache();
-scene.interpolate_normals(filters);
+status = scene.interpolate_normals(filters);
+if(status == False) :
+     print "Interpolating Normal Failed, clearing cache and exiting:"
+     scene.clear_cache();
+     boxm2_batch.clear();
+     sys.exit(2);
 scene.write_cache();
 scene.clear_cache();
-scene.extract_cell_centers();
+status = scene.extract_cell_centers();
+if(status == False) :
+     print "Extracting cell centers Failed, clearing cache and exiting:"
+     scene.clear_cache();
+     boxm2_batch.clear();
+     sys.exit(2);
 scene.write_cache();
 
 ########################################################

@@ -129,6 +129,8 @@ if __name__ == '__main__':
           IA_errors_T[s*3][f*2 + 1] = IA_error_SHOT_99[1]
           ICP_errors_R[s*3][f*2 + 1] = ICP_error_SHOT_99[0]
           ICP_errors_T[s*3][f*2 + 1] = ICP_error_SHOT_99[1]
+
+          IA_errors_R[s*3 + 1][f*2 + 1] = IA_error_SHOT_95[0]
           IA_errors_T[s*3 + 1][f*2 + 1] = IA_error_SHOT_95[1]
           ICP_errors_R[s*3 + 1][f*2 + 1] = ICP_error_SHOT_95[0]
           ICP_errors_T[s*3 + 1][f*2 + 1] = ICP_error_SHOT_95[1]
