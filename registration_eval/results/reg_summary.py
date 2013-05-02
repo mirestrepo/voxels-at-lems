@@ -17,7 +17,7 @@ errorSHOT = np.array([[4.0/18.0, 0, 1.0/18.0, 0, 0, 0],
     [30.0/30.0,0,30.0/30.0,19.0/30.0,0,0],
     [10.0/10.0,9.0/10.0,10.0/10.0,9.0/10.0,9.0/10.0,0]])
 
-barchart(errorFPFH, opacity=0.9)
+barchart(errorSHOT, opacity=1.0)
 #surf(error, warp_scale='auto')
 #outline()
 #axes()
@@ -25,6 +25,7 @@ show()
 
 # ex = vtk.vtkGL2PSExporter()
 # # defaults
+
 # ex.SetFilePrefix(f_prefix)
 # ex.SetFileFormatToPDF()
 # ex.SetSortToBSP()

@@ -250,7 +250,10 @@ def visualize_reg_ia(gt_root_dir,trial_root_dir, descriptor, radius = 30,
     src_cloud=trial_root_dir + "/" + descriptor + "_" + str(radius) + "/ia_cloud_" + str(percentile) + "_" + str(nr_iterations) + "_" +aux_output_string + ".pcd"
 
   exe = VPCL_EXE_PATH + "/visualize"
-  subprocess.call([exe , src_cloud, tgt_cloud])
+
+  print "calling with options"
+
+  subprocess.call([exe , src_cloud, tgt_cloud, "-bc", "255,255,255", "-fc1", "255,0,255", "-fc2", "0,0,255" , "-ps", "1.5"])
 
 def visualize_reg_icp(gt_root_dir,trial_root_dir, descriptor, radius = 30, percentile = 99, nr_iterations=200, rej_normals = False, geo=False, aux_output_string = "", basename_in="gauss_233_normals_pvn"):
 
@@ -268,7 +271,8 @@ def visualize_reg_icp(gt_root_dir,trial_root_dir, descriptor, radius = 30, perce
       src_cloud=trial_root_dir + "/" + descriptor + "_" + str(radius) + "/icp_cloud_" + str(percentile) + "_" + str(nr_iterations) +  "_" +aux_output_string +  ".pcd"
     exe = VPCL_EXE_PATH + "/visualize"
 
-  subprocess.call([exe , src_cloud, tgt_cloud])
+  # subprocess.call([exe , src_cloud, tgt_cloud])
+  subprocess.call([exe , src_cloud, tgt_cloud, "-bc", "255,255,255", "-fc1", "255,0,255", "-fc2", "0,0,255" , "-ps", "1.5"])
 
 def transformation_error(**kwargs):
 
