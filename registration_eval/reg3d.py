@@ -339,3 +339,35 @@ def transformation_error(**kwargs):
 
   return IA_error, ICP_error
 
+def transformation_error_general(**kwargs):
+
+  fname          = kwargs.get('fname') #filename trans. file
+  gt_fname          = kwargs.get('gt_fname', "Hs.txt") #filename ground truth trans. file
+
+
+  #************Hs**************#
+  #read source to target "Ground Truth" Transformation
+  GT_Tform = reg3d_T.gt_transformation(gt_fname)
+
+  #**************************
+  #read source to target estimated Transformation
+  Tform = reg3d_T.gt_transformation(fname)
+
+
+  #Initial Alignment errors
+  #Rotation error - half angle between the normalized quaternions
+  Rs_error_norm = math.acos(abs(np.dot(Tform.quat, GT_Tform.quat)))* 180/np.pi;
+
+  #Translation error
+  Ts_error = (Tform.Rs.T).dot(Tform.Ts) - (GT_Tform.Rs.T).dot(GT_Tform.Ts)
+  Ts_error_norm = GT_Tform.scale*LA.norm(Ts_error)
+
+  scale_error = 1.0 - Tform.scale/GT_Tform.scale
+  print  "Error (S,R,T)", scale_error,  Rs_error_norm , Ts_error_norm
+
+
+  error = np.array([scale_error, Rs_error_norm, Ts_error_norm])
+  # import code; code.interact(local=locals())
+
+  return error
+
