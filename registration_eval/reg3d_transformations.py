@@ -31,23 +31,38 @@ class gt_transformation(object):
             Tfis = open(Tfile, 'r')
             lines = []
             lines = Tfis.readlines()
-            self.scale = float(lines[0])
-            self.Ss = tf.scale_matrix(self.scale)
-            quat_line = lines[1].split(" ")
-            self.quat = tf.unit_vector(np.array([float(quat_line[3]),
-                                            float(quat_line[0]),
-                                            float(quat_line[1]),
-                                            float(quat_line[2])]))
-            self.Hs = tf.quaternion_matrix(self.quat)
-            trans_line = lines[2].split(" ")
-            self.Ts = np.array([float(trans_line[0]),
-                           float(trans_line[1]),
-                           float(trans_line[2])])
-            Tfis.close()
-            self.Rs = self.Hs.copy()[:3, :3]
-            self.Hs[:3, 3] = self.Ts[:3]
+            format = len(lines)
+            # import code; code.interact(local=locals())
 
-            self.Hs = self.Ss.dot(self.Hs)  # to add again
+
+            if format == 3:
+                self.scale = float(lines[0])
+                self.Ss = tf.scale_matrix(self.scale)
+                quat_line = lines[1].split(" ")
+                self.quat = tf.unit_vector(np.array([float(quat_line[3]),
+                                                float(quat_line[0]),
+                                                float(quat_line[1]),
+                                                float(quat_line[2])]))
+                self.Hs = tf.quaternion_matrix(self.quat)
+                trans_line = lines[2].split(" ")
+                self.Ts = np.array([float(trans_line[0]),
+                               float(trans_line[1]),
+                               float(trans_line[2])])
+                Tfis.close()
+                self.Rs = self.Hs.copy()[:3, :3]
+                self.Hs[:3, 3] = self.Ts[:3]
+
+                self.Hs = self.Ss.dot(self.Hs)  # to add again
+
+            if format == 4 :
+                self.Hs = np.genfromtxt(Tfile, usecols={0, 1, 2, 3})
+                Tfis.close()
+                scale, shear, angles, trans, persp = tf.decompose_matrix(self.Hs)
+                self.scale = scale[0]  # assuming isotropic scaling
+
+                self.Rs = self.Hs[:3, :3] * (1.0 / self.scale)
+                self.Ts = self.Hs[:3, 3] * (1.0 / self.scale)
+                self.quat = tf.quaternion_from_euler(angles[0], angles[1], angles[2])
 
         elif (type(T) == np.ndarray):
             self.Hs = T

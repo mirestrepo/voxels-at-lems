@@ -342,7 +342,8 @@ def transformation_error(**kwargs):
 def transformation_error_general(**kwargs):
 
   fname          = kwargs.get('fname') #filename trans. file
-  gt_fname          = kwargs.get('gt_fname', "Hs.txt") #filename ground truth trans. file
+  gt_fname       = kwargs.get('gt_fname', "Hs.txt") #filename ground truth trans. file
+  geo_fname      = kwargs.get('geo_fname', "")
 
 
   #************Hs**************#
@@ -353,14 +354,25 @@ def transformation_error_general(**kwargs):
   #read source to target estimated Transformation
   Tform = reg3d_T.gt_transformation(fname)
 
+    #load the geo tranformation
+  print "geo_fname", geo_fname
+  if geo_fname == "":
+    geo_scale = 1;
+  else:
+    GEO = reg3d_T.geo_transformation(geo_fname)
+    geo_scale = GEO.scale_geo;
+
+
 
   #Initial Alignment errors
   #Rotation error - half angle between the normalized quaternions
   Rs_error_norm = math.acos(abs(np.dot(Tform.quat, GT_Tform.quat)))* 180/np.pi;
 
   #Translation error
+  # import code; code.interact(local=locals())
+
   Ts_error = (Tform.Rs.T).dot(Tform.Ts) - (GT_Tform.Rs.T).dot(GT_Tform.Ts)
-  Ts_error_norm = GT_Tform.scale*LA.norm(Ts_error)
+  Ts_error_norm =  geo_scale*GT_Tform.scale*LA.norm(Ts_error)
 
   scale_error = 1.0 - Tform.scale/GT_Tform.scale
   print  "Error (S,R,T)", scale_error,  Rs_error_norm , Ts_error_norm
