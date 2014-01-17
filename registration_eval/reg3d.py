@@ -32,7 +32,7 @@ sys.path.append(RESULTS)
 
 import vpcl_adaptor
 from vpcl_register import py_vpcl
-from boxm2_utils import *
+# from boxm2_utils import *
 import transformations as tf
 import numpy as np
 import reg3d_transformations as reg3d_T
