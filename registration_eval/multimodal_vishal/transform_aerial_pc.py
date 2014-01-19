@@ -3,7 +3,7 @@
 # @Author: Maria Isabel Restrepo
 # @Date:   2014-01-08 17:41:46
 # @Last Modified by:   Maria Isabel Restrepo
-# @Last Modified time: 2014-01-15 18:23:10
+# @Last Modified time: 2014-01-19 13:06:44
 # A file to transform the aerial point clouds such that they are
 # a "small" random transformation away from the LiDAR point cloud
 
@@ -33,6 +33,7 @@ for site in sites:
           os.makedirs(dir_out)
 
         file_out = dir_out + "/gauss_233_normals_pvn_cropped_"+ str(percent)+ ".ply"
+        tform_file_out = dir_out +"/Hs"
 
         GEO_Tform = reg3d_T.gt_transformation(geo_Tfile);
         noise_Tform = reg3d_T.gt_transformation(noise_Tfile);
@@ -40,6 +41,9 @@ for site in sites:
         final_Hs = noise_Tform.Hs.dot(GEO_Tform.Hs)
 
         final_Tform = reg3d_T.gt_transformation(final_Hs)
+
+        #save the transform
+        final_Tform.save_to_file(tform_file_out);
 
         #Load original corrs .ply
         fid = open(pc_aerial_file, 'r')
