@@ -67,10 +67,14 @@ class gt_transformation(object):
         elif (type(T) == np.ndarray):
             self.Hs = T
             scale, shear, angles, trans, persp = tf.decompose_matrix(T)
-            self.quat = tf.quaternion_from_euler(angles[0], angles[1], angles[2])
-            self.Rs = tf.quaternion_matrix(self.quat)
+
             self.scale =scale[0]
-            self.Ts = trans / self.scale
+            self.Rs = self.Hs[:3, :3] * (1.0 / self.scale)
+            self.Ts = self.Hs[:3, 3] * (1.0 / self.scale)
+            self.quat = tf.quaternion_from_euler(angles[0], angles[1], angles[2])
+
+            # self.Rs = tf.quaternion_matrix(self.quat)
+            # self.Ts = trans / self.scale
 
 
         print "Loaded Ground Truth Transformation: "
@@ -84,23 +88,23 @@ class gt_transformation(object):
         T_file = basename + ".txt"
         T_file_mat = basename + "_matrix.txt"
 
-        if(path.exists(T_file)):
-            print "Error file already exists"
-            exit(1)
-        if(path.exists(T_file_mat)):
-            print "Error file already exists"
-            exit(1)
+        if  (path.exists(T_file)):
+            print "Warning: Transformation file exists, it won't be overwritten"
+        if  (path.exists(T_file_mat)):
+            print "Warning: Matrix file exists, it won't be overwritten"
 
-        Tfos = open(T_file, 'w')
-        np.savetxt( Tfos, np.array([self.scale]), fmt='%.7g')
-        vxl_quat = np.array((self.quat[1],self.quat[2],self.quat[3],self.quat[0]))
-        np.savetxt( Tfos , vxl_quat.reshape((1,4)) , fmt='%.7g', delimiter=' ')
-        np.savetxt( Tfos , self.Ts.reshape((1,3))  , fmt='%.7g', delimiter=' ')
-        Tfos.close()
-
-        Tfos = open(T_file_mat, 'w')
-        np.savetxt( Tfos , self.Hs, fmt='%.7g')
-        Tfos.close()
+        if not (path.exists(T_file)):
+            Tfos = open(T_file, 'w')
+            np.savetxt( Tfos, np.array([self.scale]), fmt='%.7g')
+            vxl_quat = np.array((self.quat[1],self.quat[2],self.quat[3],self.quat[0]))
+            np.savetxt( Tfos , vxl_quat.reshape((1,4)) , fmt='%.7g', delimiter=' ')
+            np.savetxt( Tfos , self.Ts.reshape((1,3))  , fmt='%.7g', delimiter=' ')
+            Tfos.close()
+        if not (path.exists(T_file_mat)):
+            Tfos = open(T_file_mat, 'w')
+            np.savetxt( Tfos, np.array([self.scale]), fmt='%.7g')
+            np.savetxt( Tfos , self.Hs, fmt='%.7g')
+            Tfos.close()
 
 
 class geo_transformation(object):
