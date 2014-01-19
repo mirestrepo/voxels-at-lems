@@ -19,32 +19,55 @@ vpcl_setup_module.setUpPaths(configuration = 'Release')
 
 import reg3d
 
-
-site_idx = 0;
-
 reg_dir = "/Users/isa/Dropbox/MultiModalRegPaper"
+result_summary_file = reg_dir + "/icp_results/aerial-lidar/summary.txt"
 
 sites = ["BH_2006", "BH_VSI", "capitol_2006", "capitol_2011", "downtown_2006", "downtown_2011"];
 l_sites = ["BH", "BH", "capitol", "capitol", "downtown", "downtown"]
 percent = 95;
 ntrials = 5
-error = np.zeros((ntrials-1, 3));
+error = np.zeros((ntrials, 3, len(sites)));
 
-for trial in range(0,1):
-    print 'Trial: ' + str(trial)
-    results_dir = reg_dir + "/icp_results/aerial-lidar/" + sites[site_idx ] + "/H_" + str(trial)
+for site_idx in range(0, len(sites)):
+    for trial in range(0,5):
+        print 'Trial: ' + str(trial)
+        results_dir = reg_dir + "/icp_results/aerial-lidar/" + sites[site_idx ] + "/H_" + str(trial)
 
-    t_fname = results_dir + "/icp_output_tform_" + str(percent) + ".txt"
-    gt_fname = reg_dir + "/ground_truth/rand_t/H_" + str(trial) + ".txt"
+        t_fname = results_dir + "/icp_output_tform_" + str(percent) + ".txt"
+        gt_fname = reg_dir + "/ground_truth/rand_t/H_" + str(trial) + "_inv.txt"
 
 
-    error[trial-1,:] = reg3d.transformation_error_general(fname = t_fname,
-                                                          gt_fname = gt_fname)
+        error[trial,:, site_idx ] = reg3d.transformation_error_general(fname = t_fname,
+                                                                         gt_fname = gt_fname)
 
-print 'Errors:'
-print error
 
-print 'Mean:'
-print np.mean(abs(error), axis=0)
-print 'Std:'
-print np.std(abs(error), axis=0)
+Tfos = open(result_summary_file, 'w')
+
+
+for site_idx in range(0, len(sites)):
+    print "-----------------------------------------------------"
+    print "*********** Errors " + sites[site_idx] + " *************"
+    print "-----------------------------------------------------"
+
+    print error[:,:,site_idx]
+
+    print 'Mean:'
+    mean_error = np.mean(abs(error[:,:,site_idx]), axis=0)
+    print mean_error
+    print 'Std:'
+    std_error = np.std(abs(error[:,:,site_idx]), axis=0)
+    print std_error
+
+    Tfos.write("-----------------------------------------------------\n")
+    Tfos.write("*********** Errors " + sites[site_idx] + " *************\n")
+    Tfos.write("-----------------------------------------------------\n")
+    np.savetxt( Tfos , error[:,:,site_idx], fmt='%.7g')
+    Tfos.write("Mean:\n")
+    np.savetxt( Tfos , mean_error.reshape((1,3))  , fmt='%.7g', delimiter=' ')
+    Tfos.write("Std:\n")
+    np.savetxt( Tfos , std_error.reshape((1,3))  , fmt='%.7g', delimiter=' ')
+
+
+Tfos.close()
+
+
