@@ -171,7 +171,7 @@ def register_icp(**kwargs):
   gt_root_dir         = kwargs.get('gt_root_dir')
   trial_root_dir      = kwargs.get('trial_root_dir')
   descriptor_type     = kwargs.get('descriptor_type')
-  radius              = kwargs.get('radius', 30)
+                  = kwargs.get('radius', 30)
   percentile          = kwargs.get('percentile' ,99)
   nr_iterations       = kwargs.get('nr_iterations', 200)
   rej_normals         = kwargs.get('rej_normals', False)

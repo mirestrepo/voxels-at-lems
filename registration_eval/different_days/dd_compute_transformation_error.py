@@ -15,17 +15,23 @@ import os
 import sys
 import logging
 import argparse
-from vpcl_adaptor import *
 import numpy as np
 from numpy import linalg as LA
 import transformations as tf
 import math
 import matplotlib.pyplot as plt
 
+# sys.path.append(os.pardir)
+# import reg3d
+
 sys.path.append(os.pardir)
+VOXELS_AT_LEMS_VPCL = "../../vpcl"
+sys.path.append(VOXELS_AT_LEMS_VPCL)
+
+import vpcl_setup_module
+vpcl_setup_module.setUpPaths(configuration = 'Release')
+from vpcl_adaptor import *
 import reg3d
-
-
 
 if __name__ == '__main__':
 
@@ -41,12 +47,14 @@ if __name__ == '__main__':
 
     site = "capitol"
     flights = [["2011","2006"]]
-    geo_tfile = "/data/lidar_providence/capitol/capitol-dan_Hs.txt"
+    # geo_tfile = "/data/lidar_providence/capitol/capitol-dan_Hs.txt"
+    geo_tfile = "/Users/isa/Dropbox/My Work/Research/lidar_providence/capitol/capitol-dan_Hs.txt"
     # flights = [["2006","2011"]]
     # geo_tfile = "/Users/isa/Experiments/reg3d_eval/capitol_2011/original/Hs_geo.txt"
 
 
-    root_dir = "/Users/isa/Experiments/reg3d_eval";
+    # root_dir = "/Users/isa/Experiments/reg3d_eval";
+    root_dir = "/Volumes/Good-Bye Barus and Holley/reg3d_eval"
     radius = 30
     nr_iter = 500
     cropped = True

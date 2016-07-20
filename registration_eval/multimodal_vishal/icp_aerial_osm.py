@@ -1,7 +1,10 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 # @Author: Maria Isabel Restrepo
-# @Date:   2014-01-09 18:15:37
+# @Date:   2014-02-28 12:18:57
+# @Last Modified by:   Maria Isabel Restrepo
+# @Last Modified time: 2014-02-28 14:50:40
+
 
 import sys, os
 
@@ -15,20 +18,19 @@ from vpcl_register import py_vpcl
 
 reg_dir = "/Users/isa/Dropbox/MultiModalRegPaper"
 
-sites = ["BH_2006", "BH_VSI", "capitol_2006", "capitol_2011", "downtown_2006", "downtown_2011"];
-l_sites = ["BH", "BH", "capitol", "capitol", "downtown", "downtown"]
+sites = [ "downtown_2006", "downtown_2011"];
+l_sites = ["downtown", "downtown"]
 percent = 95;
 
 for site_idx in range(0, len(sites)):
 
     for trial in range(0,5):
 
-        src_fname = reg_dir + "/data/LiDAR_demeaned/" + l_sites[site_idx ]+ "/" + l_sites[site_idx ]  + "_lidar.ply"
+        src_fname = reg_dir + "/data/Osm/downtown_roads_demeaned.ply"
         tgt_fname = reg_dir + "/data/point_clouds_aerial_geo_noise/" + sites[site_idx ] + "/H_" + str(trial) + "/gauss_233_normals_pvn_cropped_" + str(percent) + ".ply"
 
-        dir_out = reg_dir + "/icp_results/lidar-aerial2/" + sites[site_idx ] + "/H_" + str(trial)
+        dir_out = reg_dir + "/icp_results/osm-aerial/" + sites[site_idx ] + "/H_" + str(trial)
 
-        # dir_out = reg_dir + "/icp_results/aerial-lidar/" + sites[site_idx ] + "/H_" + str(trial)
 
         if not os.path.exists(dir_out):
           print "Output dir not found - creating one ", dir_out

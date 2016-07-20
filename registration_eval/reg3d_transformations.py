@@ -16,26 +16,34 @@ from os import path
 
 
 class gt_transformation(object):
-    """Handles processing a ground truth transfomation
-   File saved using vxl format
-   x' = s *(Rx + T)
-   scale
-   quaternion
-   translation """
+
 
     def __init__(self, T):
 
         if ( type(T) == str):
+            print "Loading Transformation from file: " + T
+
             Tfile = T
             #Load transformation
             Tfis = open(Tfile, 'r')
             lines = []
             lines = Tfis.readlines()
             format = len(lines)
+            Tfis.seek(0) #reset file pointer
+
+            if not (format==3 or format==4 or format==5) :
+                raise ValueError("Wrong number of lines in file")
             # import code; code.interact(local=locals())
 
 
             if format == 3:
+                """Handles processing a ground truth transfomation
+                File saved using vxl format
+                x' = s *(Rx + T)
+                scale
+                quaternion
+                translation """
+                print("Reading format 3")
                 self.scale = float(lines[0])
                 self.Ss = tf.scale_matrix(self.scale)
                 quat_line = lines[1].split(" ")
@@ -55,6 +63,11 @@ class gt_transformation(object):
                 self.Hs = self.Ss.dot(self.Hs)  # to add again
 
             if format == 4 :
+                """If the transformation was saved as:
+                H (4x4) - = [S*R|S*T]
+                """
+                print("Reading format 4")
+
                 self.Hs = np.genfromtxt(Tfile, usecols={0, 1, 2, 3})
                 Tfis.close()
                 scale, shear, angles, trans, persp = tf.decompose_matrix(self.Hs)
@@ -64,7 +77,33 @@ class gt_transformation(object):
                 self.Ts = self.Hs[:3, 3] * (1.0 / self.scale)
                 self.quat = tf.quaternion_from_euler(angles[0], angles[1], angles[2])
 
+            if format==5:
+                """If the transformation was saved as:
+                scale
+                H (4x4) - = [S*R|S*T]
+                """
+                print("Reading format 5")
+                self.Hs = np.genfromtxt(Tfis, skip_header=1, usecols={0, 1, 2, 3})
+                Tfis.close()
+                Tfis = open(Tfile, 'r')
+                self.scale = np.genfromtxt(Tfis, skip_footer=4, usecols={0})
+                Tfis.close()
+                self.Rs = self.Hs[:3, :3] * (1.0 / self.scale)
+                self.Ts = self.Hs[:3, 3] * (1.0 / self.scale)
+
+
+                scale, shear, angles, trans, persp = tf.decompose_matrix(self.Hs)
+                self.quat = tf.quaternion_from_euler(angles[0], angles[1], angles[2])
+
+                print "Debugging translation:"
+                print self.Ts
+                print trans/self.scale
+
+
+
+
         elif (type(T) == np.ndarray):
+            print "Loading Transformation array"
             self.Hs = T
             scale, shear, angles, trans, persp = tf.decompose_matrix(T)
 
@@ -73,11 +112,14 @@ class gt_transformation(object):
             self.Ts = self.Hs[:3, 3] * (1.0 / self.scale)
             self.quat = tf.quaternion_from_euler(angles[0], angles[1], angles[2])
 
+            print "Debugging translation:"
+            print self.Ts
+            print trans/self.scale
+
             # self.Rs = tf.quaternion_matrix(self.quat)
             # self.Ts = trans / self.scale
 
 
-        print "Loaded Ground Truth Transformation: "
         print self.Hs
 
 
